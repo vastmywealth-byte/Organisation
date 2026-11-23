@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VastMyWealth — Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B1220; --panel:#111A2E; --panel-2:#16223A; --line:#233251;
+  --gold:#D4A741; --gold-light:#F0D593;
+  --ink:#0F1E3D; --text:#EAF0FC; --muted:#8FA0C4;
+  --ok:#34D399; --ok-bg:rgba(52,211,153,.14);
+  --warn:#F0B94B; --warn-bg:rgba(240,185,75,.14);
+  --bad:#F0665E; --bad-bg:rgba(240,102,94,.14);
+  --info:#7FB0FF; --info-bg:rgba(127,176,255,.14);
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+button{cursor:pointer;border:none;font-family:inherit;background:none;color:inherit}
+input,select,textarea{font-family:inherit}
+a{color:var(--gold-light)}
+.hidden{display:none!important}
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px 26px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.login-logo{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--gold),#B8863B);display:flex;align-items:center;justify-content:center;color:var(--ink);font-weight:800;font-size:18px;margin:0 auto 14px}
+.login-card h1{text-align:center;font-size:19px;font-weight:800}
+.login-card p{text-align:center;color:var(--muted);font-size:13px;margin:6px 0 22px}
+.login-card input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2);color:#fff;font-size:15px;margin-bottom:12px}
+.login-card input:focus{outline:2px solid var(--gold);outline-offset:1px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 16px;border-radius:9px;font-weight:700;font-size:13.5px;transition:opacity .12s}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-block{width:100%}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#B8863B);color:var(--ink)}
+.btn-line{background:var(--panel-2);border:1px solid var(--line);color:var(--text)}
+.btn-ok{background:var(--ok-bg);color:var(--ok)}
+.btn-bad{background:var(--bad-bg);color:var(--bad)}
+.btn-sm{padding:7px 11px;font-size:12px;border-radius:7px}
+.err-msg{color:#FCA5A5;font-size:12.5px;text-align:center;margin-top:10px}
+#app{display:none;min-height:100vh}
+header.topbar{position:sticky;top:0;z-index:30;background:rgba(11,18,32,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14.5px}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--gold)}
+.topbar .spacer{flex:1}
+.global-search{padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:#fff;font-size:13px;min-width:180px}
+nav.tabs{display:flex;gap:4px;padding:8px 12px 0;overflow-x:auto}
+.tab-btn{padding:9px 14px;border-radius:9px 9px 0 0;font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;border-bottom:2px solid transparent}
+.tab-btn.active{color:#fff;background:var(--panel);border-bottom-color:var(--gold)}
+main{padding:14px 12px 60px;max-width:1180px;margin:0 auto}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.toolbar input,.toolbar select{padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:#fff;font-size:13px}
+.toolbar label{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px}
+.stat-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat-box b{display:block;font-size:20px}
+.stat-box span{font-size:11px;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.card-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;cursor:pointer}
+.card-row .name{font-size:14.5px;font-weight:700;color:#fff}
+.card-row .cp{color:var(--gold-light);font-weight:800}
+.card-row .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.caret{color:var(--muted);font-size:11px;transition:transform .15s;flex-shrink:0;margin-top:4px}
+.caret.open{transform:rotate(180deg)}
+.card-detail{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.card-detail.open{display:block}
+.meta-line{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:12px;color:var(--muted);margin-bottom:8px;align-items:center}
+.tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--panel-2);color:var(--text);white-space:nowrap}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.tag.warn{background:var(--warn-bg);color:var(--warn)}
+.tag.bad{background:var(--bad-bg);color:var(--bad)}
+.tag.info{background:var(--info-bg);color:var(--info)}
+.icon-row{display:flex;gap:6px}
+.icon-btn{width:30px;height:30px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px;text-decoration:none;color:var(--text)}
+.section-label{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--gold-light);margin:14px 0 8px}
+.section-label:first-child{margin-top:0}
+.mini-row{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:6px;font-size:12.5px}
+.mini-row-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mini-row .lbl{font-weight:700;color:#fff}
+.mini-row select{font-size:12px;padding:5px 6px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:#fff}
+.pick-list{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;max-height:200px;overflow-y:auto}
+.pick-list label{display:flex;align-items:center;gap:9px;padding:9px 11px;font-size:13px;border-bottom:1px solid var(--line)}
+.pick-list label:last-child{border-bottom:0}
+.pick-list input{width:auto}
+.empty{text-align:center;padding:30px 12px;color:var(--muted);font-size:13px}
+.error-box{text-align:center;padding:30px 16px;color:#FCA5A5;font-size:13px;line-height:1.6}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11.5px;font-weight:700;color:var(--gold-light);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:#fff;font-size:14px}
+.danger-zone{border:1px solid rgba(240,102,94,.4);border-radius:10px;padding:12px;margin-top:14px}
+.linkbox{display:flex;gap:8px;align-items:center;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:7px 7px 7px 10px}
+.linkbox span{flex:1;min-width:0;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.backdrop{display:none;position:fixed;inset:0;background:rgba(4,8,18,.72);z-index:60}
+.sheet{display:none;position:fixed;left:0;right:0;bottom:0;max-height:92vh;overflow-y:auto;background:var(--bg);border-top:3px solid var(--gold);border-radius:16px 16px 0 0;padding:16px 16px 30px;z-index:61;max-width:640px;margin:0 auto}
+.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.sheet-head h3{font-size:16px}
+.sheet-head .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+.close-x{width:32px;height:32px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);font-size:15px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--ink);padding:10px 18px;border-radius:24px;font-size:13px;font-weight:700;z-index:80;display:none;max-width:90%;text-align:center}
+.toast.error{background:var(--bad);color:#fff}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+.super-badge{background:var(--gold);color:var(--ink);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:800;margin-left:8px}
+.domain-check-box{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<!-- ===================== LOGIN ===================== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">VMW</div>
+    <h1>Admin Control Panel</h1>
+    <p>Leads, bankers, partners &amp; DSA assignments</p>
+    <input type="password" id="adminPassword" placeholder="Admin password or PIN">
+    <button class="btn btn-gold btn-block" id="loginBtn">Sign in</button>
+    <div class="err-msg hidden" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><span class="dot"></span>VastMyWealth Admin <span id="superAdminBadge" class="super-badge hidden">Super Admin</span></div>
+    <div class="spacer"></div>
+    <input type="text" class="global-search" id="globalSearch" placeholder="Search name, mobile, company…">
+    <button class="btn btn-line btn-sm" id="refreshBtn">↻ Refresh</button>
+    <button class="btn btn-line btn-sm" id="logoutBtn">Log out</button>
+  </header>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="tabLeads">Leads</button>
+    <button class="tab-btn" data-tab="tabBankers">Bankers</button>
+    <button class="tab-btn" data-tab="tabPartners">Partners</button>
+    <button class="tab-btn" data-tab="tabSubs">Biz Tool</button>
+    <button class="tab-btn" data-tab="tabTeam">Team</button>
+    <button class="tab-btn" data-tab="tabFb">DSA Feedback</button>
+    <button class="tab-btn" data-tab="tabOrg">Organisation</button>
+  </nav>
+  <main>
+    <!-- ============ LEADS ============ -->
+    <div id="tabLeads" class="tab-pane">
+      <div class="stats-row" id="leadsStats"></div>
+      <div class="toolbar">
+        <select id="productFilter">
+          <option value="">All loan types</option>
+          <option value="PL">Personal Loan</option><option value="BL">Business Loan</option>
+          <option value="HL">Home Loan</option><option value="LAP">Loan Against Property</option>
+          <option value="VL">Vehicle Loan</option><option value="EL">Education Loan</option>
+        </select>
+        <select id="stageFilter">
+          <option value="">All stages</option>
+          <option value="No activity yet">No activity yet</option>
+          <option value="In process">In process</option>
+          <option value="Approved">Approved</option>
+          <option value="Disbursed">Disbursed</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+        <select id="docFilter">
+          <option value="">All documents</option>
+          <option value="Pending">Documents pending</option>
+          <option value="Submitted">Documents submitted</option>
+        </select>
+        <input type="text" id="stateFilter" placeholder="State">
+        <label><input type="checkbox" id="attentionFilter"> Needs attention only</label>
+        <label><input type="checkbox" id="awaitingFilter"> Awaiting updates only</label>
+        <label><input type="checkbox" id="showHiddenCheckbox"> Show hidden</label>
+      </div>
+      <div id="leadsContainer"><div class="empty">Loading leads…</div></div>
+    </div>
+    <!-- ============ BANKERS ============ -->
+    <div id="tabBankers" class="tab-pane hidden">
+      <div class="stats-row" id="bankersStats"></div>
+      <div class="section-label">⚠ Blocked / near limit (8 rejections in 30 days)</div>
+      <div id="blockedBankersContainer"><div class="empty">Loading…</div></div>
+      <div class="section-label" style="margin-top:20px;">Partner-referred bankers awaiting approval</div>
+      <div id="pendingPartnerBankersContainer"><div class="empty">Loading…</div></div>
+      <div class="section-label" style="margin-top:20px;">Pending DSA code verification</div>
+      <div id="pendingCodesContainer"><div class="empty">Loading…</div></div>
+      <div class="section-label" style="margin-top:20px;">All bankers</div>
+      <div class="toolbar"><input type="text" id="bankerSearchBox" placeholder="Search banker name or mobile…">
+        <label><input type="checkbox" id="showAllBankers"> Show all bankers (incl. inactive)</label>
+        <button class="btn btn-gold btn-sm" id="addBankerCodeBtn">+ Add DSA code</button>
+      </div>
+      <div id="bankersContainer"><div class="empty">Loading bankers…</div></div>
+    </div>
+    <!-- ============ PARTNERS ============ -->
+    <div id="tabPartners" class="tab-pane hidden">
+      <div class="toolbar"><input type="text" id="partnerSearchBox" placeholder="Search partner name or mobile…">
+        <label><input type="checkbox" id="showAllPartners"> Show all partners (incl. inactive)</label></div>
+      <div id="partnersContainer"><div class="empty">Loading partners…</div></div>
+    </div>
+    <!-- ============ DSA FEEDBACK IMPORT ============ -->
+    <div id="tabFb" class="tab-pane hidden">
+      <div class="card">
+        <div class="name">Import DSA feedback</div>
+        <div class="sub" style="margin-bottom:10px;">Pick the DSA, choose their sheet (CSV or Excel), check the column mapping once, then import. The mapping is remembered for next time.</div>
+        <div class="field"><label for="fbDsa">DSA</label><select id="fbDsa"></select></div>
+        <div class="field"><label for="fbFile">Sheet (.csv, .xlsx, .xls)</label><input type="file" id="fbFile" accept=".csv,.xlsx,.xls"></div>
+      </div>
+      <div id="fbMap" class="hidden">
+        <div class="card">
+          <div class="name">1. Which column is what?</div>
+          <div class="field"><label for="fbColMobile">Mobile number column *</label><select id="fbColMobile"></select></div>
+          <div class="field"><label for="fbColStatus">Status column *</label><select id="fbColStatus"></select></div>
+          <div class="field"><label for="fbColBank">Bank / lender column (optional)</label><select id="fbColBank"></select></div>
+          <div class="field"><label for="fbColRemark">Remark column (optional)</label><select id="fbColRemark"></select></div>
+          <div class="field"><label for="fbColName">Customer name column (optional)</label><select id="fbColName"></select></div>
+          <div class="field"><label for="fbColAmount">Disbursed amount column (optional)</label><select id="fbColAmount"></select></div>
+          <div class="field"><label for="fbColDisbDate">Disbursal date column (optional)</label><select id="fbColDisbDate"></select></div>
+        </div>
+        <div class="card">
+          <div class="name">2. What does each status mean?</div>
+          <div class="sub" style="margin-bottom:8px;"><b>Rejected</b> = lead is marked Rejected here, the customer still sees “in process”, and it stays in the banker pool.</div>
+          <div id="fbStatusTable"></div>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-line" id="fbPreview">Preview</button>
+          <button class="btn btn-gold" id="fbImport">Import now</button>
+        </div>
+        <div id="fbResult"></div>
+      </div>
+    </div>
+    <!-- ============ TEAM (EMPLOYEE LOGINS) ============ -->
+    <div id="tabTeam" class="tab-pane hidden">
+      <div class="toolbar">
+        <button class="btn btn-gold btn-sm" id="addTeamBtn">+ Add employee</button>
+        <span class="sub" id="teamLinkNote" style="align-self:center;"></span>
+      </div>
+      <div id="teamContainer"><div class="empty">Loading…</div></div>
+    </div>
+    <!-- ============ ORGANISATION ============ -->
+    <div id="tabOrg" class="tab-pane hidden">
+      <div class="toolbar" style="flex-wrap:wrap;gap:6px;">
+        <button class="btn btn-gold btn-sm" data-orgsec="orgSeats">Seats</button>
+        <button class="btn btn-line btn-sm" data-orgsec="orgAppr">Approvals</button>
+        <button class="btn btn-line btn-sm" data-orgsec="orgComm">Commission</button>
+        <button class="btn btn-line btn-sm" data-orgsec="orgStmt">Statements</button>
+        <button class="btn btn-line btn-sm" data-orgsec="orgMis">MIS</button>
+      </div>
+      <div class="sub" id="orgLoginNote" style="margin-bottom:8px;"></div>
+
+      <div id="orgSeats" class="org-sec">
+        <div class="toolbar"><button class="btn btn-gold btn-sm" id="orgNewSeat">+ New seat</button></div>
+        <div class="card hidden" id="orgForm">
+          <div class="name" id="orgFormTitle">New seat</div>
+          <div class="field"><label>Seat code</label><input id="orgfCode" readonly placeholder="(created automatically)"></div>
+          <div class="field"><label>Role</label><select id="orgfRole"><option>Regional</option><option>City</option><option>RM</option><option>Partner</option><option>Support</option></select></div>
+          <div class="field"><label>Parent seat</label><select id="orgfParent"></select></div>
+          <div class="field"><label>State (Regional) / City (City)</label><input id="orgfTerr" placeholder="e.g. Maharashtra or Mumbai"></div>
+          <div class="field"><label>Name</label><input id="orgfName"></div>
+          <div class="field"><label>Mobile (10 digits)</label><input id="orgfMobile" inputmode="numeric" maxlength="10"></div>
+          <div class="field"><label>Email (PIN is sent here)</label><input id="orgfEmail" type="email"></div>
+          <div class="field"><label>PAN available?</label><select id="orgfPan"><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label>GST registered?</label><select id="orgfGst"><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label>Send-as e-mail alias (optional)</label><input id="orgfAlias" placeholder="west.ref@mail.vastmywealth.com"></div>
+          <div class="field"><label>Link an existing Partner / Banker code (optional)</label><input id="orgfPcode"></div>
+          <div class="field"><label>Notes</label><input id="orgfNotes"></div>
+          <div id="orgfErr" class="error-box hidden"></div>
+          <div style="display:flex;gap:8px;"><button class="btn btn-gold" id="orgfSave">Save</button><button class="btn btn-line" id="orgfCancel">Cancel</button></div>
+        </div>
+        <div id="orgSeatList"><div class="empty">Loading…</div></div>
+      </div>
+
+      <div id="orgAppr" class="org-sec hidden">
+        <div class="section-label">Move requests</div><div id="orgMoves"></div>
+        <div class="section-label" style="margin-top:14px;">Commission shares recommended by managers</div>
+        <div class="sub" style="margin-bottom:6px;">Share % = the part of the commission received on a lead that this seat earns. Along any chain the approved shares must total 100% or less; the rest stays with the company.</div>
+        <div id="orgShares"></div>
+      </div>
+
+      <div id="orgComm" class="org-sec hidden">
+        <div class="card">
+          <div class="name">Record commission received from a lender</div>
+          <div class="field"><label>Lead ID</label><input id="ocLead"></div>
+          <div class="field"><label>Commission received (₹)</label><input id="ocAmt" inputmode="decimal"></div>
+          <div class="field"><label>Received on (optional, dd/mm/yyyy)</label><input id="ocDate"></div>
+          <div class="field"><label>Lender / channel (optional)</label><input id="ocChan"></div>
+          <div class="field"><label>Note (optional)</label><input id="ocNote"></div>
+          <button class="btn btn-gold" id="ocSave">Record and split</button>
+          <div id="ocRes" class="sub" style="margin-top:8px;"></div>
+        </div>
+        <div class="card">
+          <div class="name">Lender took commission back (clawback)</div>
+          <div class="field"><label>Lead ID</label><input id="cbLead"></div>
+          <div class="field"><label>Amount reversed by the lender (₹)</label><input id="cbAmt" inputmode="decimal"></div>
+          <div class="field"><label>Note (optional)</label><input id="cbNote"></div>
+          <button class="btn btn-bad" id="cbSave">Record clawback</button>
+          <div id="cbRes" class="sub" style="margin-top:8px;"></div>
+        </div>
+        <div class="section-label">Ledger (latest 100)</div><div id="orgLedger"></div>
+      </div>
+
+      <div id="orgStmt" class="org-sec hidden">
+        <div class="card">
+          <div class="name">Monthly statement</div>
+          <div class="sub" style="margin-bottom:8px;">Run once on the fixed payout day. Preview first. A seat whose net for the period is negative is carried forward.</div>
+          <div class="field"><label>Month (yyyy-mm)</label><input id="osMonth"></div>
+          <div style="display:flex;gap:8px;"><button class="btn btn-line" id="osPreview">Preview</button><button class="btn btn-gold" id="osCreate">Create statements</button></div>
+          <div id="osRes" style="margin-top:8px;"></div>
+        </div>
+        <div class="section-label">Statements</div><div id="orgStmtList"></div>
+      </div>
+
+      <div id="orgMis" class="org-sec hidden">
+        <div class="field"><label>View</label><select id="omScope"></select></div>
+        <div class="field"><label>Period</label><select id="omMonths"><option value="0">All live leads</option><option value="3">Last 3 months</option><option value="6">Last 6 months</option><option value="14">Last 14 months</option></select></div>
+        <button class="btn btn-gold" id="omLoad">Show</button>
+        <div id="omOut" style="margin-top:10px;"></div>
+      </div>
+    </div>
+    <!-- ============ BIZ TOOL SUBSCRIPTIONS ============ -->
+    <div id="tabSubs" class="tab-pane hidden">
+      <div class="stats-row" id="subsStats"></div>
+      <div class="toolbar">
+        <button class="btn btn-gold btn-sm" id="addSubBtn">+ New subscription</button>
+      </div>
+      <div id="subsContainer"><div class="empty">Loading…</div></div>
+    </div>
+  </main>
+</div>
+
+<!-- ===================== LEAD DETAIL SHEET ===================== -->
+<div class="backdrop" id="leadBackdrop"></div>
+<div class="sheet" id="leadSheet">
+  <div class="sheet-head">
+    <div><h3 id="sheetName"></h3><div class="sub" id="sheetSub"></div></div>
+    <button class="close-x" id="closeLeadSheet">✕</button>
+  </div>
+  <div id="exclusivityBanner" class="hidden" style="background:var(--warn-bg);border:1px solid rgba(240,185,75,.4);border-radius:9px;padding:9px 11px;margin:8px 0;font-size:12.5px;color:var(--warn);"></div>
+  <div class="section-label">Upload documents received on WhatsApp</div>
+  <p class="sub" style="margin:0 0 8px;">Select the file(s) exactly as received — they're saved straight into this customer's Drive folder, with no per-document labelling.</p>
+  <input type="file" id="waDocFiles" multiple accept="image/*,.pdf" style="color:var(--text);font-size:14px;margin-bottom:8px;">
+  <button class="btn btn-line btn-block" id="waDocUploadBtn">Upload to customer folder</button>
+  <div id="waDocProgress" class="sub hidden" style="margin-top:6px;"></div>
+  <div class="section-label">Follow-up — who has / hasn't updated</div>
+<p class="sub" style="margin:0 0 8px;">No portal needed — set each party's status yourself after speaking to them.</p>
+<div id="followUpRows"></div>
+<button class="btn btn-gold btn-block" style="margin-top:8px;" id="remindPendingBtn">✉ Email all pending</button>
+  <div class="section-label">Full lead history</div>
+  <div id="sheetHistoryRows"><div class="empty">Loading…</div></div>
+  <div class="section-label">Lender pipeline (admin-assigned)</div>
+  <div id="pipelineRows"></div>
+  <div class="section-label">Banker claim history (from the leads pool)</div>
+  <div id="claimHistoryRows"></div>
+  <div class="section-label">Send to additional lenders</div>
+  <div class="pick-list" id="lenderSelectList"><div class="empty">Loading lenders…</div></div>
+  <button class="btn btn-line btn-block" style="margin-top:8px;" id="addLendersBtn">Add selected lenders</button>
+  <div class="section-label">Assign to processing DSA</div>
+  <div class="pick-list" id="dsaSelectList"><div class="empty">Loading…</div></div>
+  <button class="btn btn-gold btn-block" style="margin-top:8px;" id="assignDsaBtn">Assign &amp; email documents</button>
+  <div id="processingBankSection" class="hidden">
+    <div class="section-label">Processing bank</div>
+    <input type="text" id="processingBankInput" placeholder="Bank name" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:#fff;margin-bottom:8px;">
+    <button class="btn btn-gold btn-block" id="saveProcessingBankBtn">Save</button>
+  </div>
+  <div class="danger-zone">
+    <div class="section-label">Danger zone</div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-line btn-block" id="hideLeadBtn">Hide from list</button>
+      <button class="btn btn-bad btn-block" id="deleteLeadBtn">Delete permanently</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ADD DSA CODE SHEET ===================== -->
+<div class="backdrop" id="addCodeBackdrop"></div>
+<div class="sheet" id="addCodeSheet">
+  <div class="sheet-head"><h3>Add a DSA code for a banker</h3><button class="close-x" id="closeAddCodeSheet">✕</button></div>
+  <div class="field"><label for="acBanker">Banker</label>
+    <select id="acBanker"><option value="">Select a banker…</option></select></div>
+  <div class="field"><label for="acBank">Bank / NBFC name</label><input type="text" id="acBank" autocomplete="off"></div>
+  <div class="field"><label for="acLoanType">Loan type</label>
+    <select id="acLoanType">
+      <option value="PL">Personal Loan</option><option value="BL">Business Loan</option>
+      <option value="HL">Home Loan</option><option value="LAP">Loan Against Property</option>
+      <option value="VL">Vehicle Loan</option><option value="EL">Education Loan</option>
+    </select></div>
+  <div class="field"><label for="acCode">DSA code</label><input type="text" id="acCode" autocomplete="off"></div>
+  <button class="btn btn-gold btn-block" id="acSubmitBtn">Add &amp; activate</button>
+  <div id="acResult" class="err-msg hidden"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- ===================== ADD EMPLOYEE SHEET ===================== -->
+<div class="backdrop" id="addTeamBackdrop"></div>
+<div class="sheet" id="addTeamSheet">
+  <div class="sheet-head"><h3>Add employee</h3><button class="close-x" id="closeAddTeamSheet">✕</button></div>
+  <div class="field"><label for="teamName">Name</label><input type="text" id="teamName"></div>
+  <div class="field"><label for="teamMobile">Mobile number</label><input type="text" id="teamMobile" inputmode="numeric" maxlength="10"></div>
+  <div class="field"><label for="teamEmail">Email (PIN and login link are sent here)</label><input type="email" id="teamEmail"></div>
+  <button class="btn btn-gold btn-block" id="teamSubmitBtn">Create &amp; email PIN</button>
+  <div id="teamResult" class="err-msg hidden"></div>
+</div>
+
+<!-- ===================== NEW SUBSCRIPTION SHEET ===================== -->
+<div class="backdrop" id="addSubBackdrop"></div>
+<div class="sheet" id="addSubSheet">
+  <div class="sheet-head"><h3>New Biz Tool subscription</h3><button class="close-x" id="closeAddSubSheet">✕</button></div>
+  <div class="field"><label for="subHolderType">Holder type</label>
+    <select id="subHolderType"><option value="Banker">Banker</option><option value="Partner">Partner / DSA</option></select></div>
+  <div class="field"><label for="subHolderCode">Holder code</label><input type="text" id="subHolderCode" placeholder="Partner Code, e.g. B12345 or P12345"></div>
+  <div class="field"><label for="subHolderName">Holder name</label><input type="text" id="subHolderName"></div>
+  <div class="field"><label for="subBankName">Bank name (bankers only)</label><input type="text" id="subBankName"></div>
+  <div class="field"><label for="subStates">State(s) — comma separated</label><input type="text" id="subStates" placeholder="e.g. Maharashtra, Karnataka"></div>
+  <div class="field"><label for="subCity">City (optional — leave blank for the whole state)</label><input type="text" id="subCity"></div>
+  <div class="field"><label for="subPlan">Plan</label>
+    <select id="subPlan"><option value="Monthly">Monthly — ₹7,000</option><option value="Quarterly">Quarterly — ₹18,000</option></select></div>
+  <div class="field"><label for="subAmount">Amount paid (₹) — leave blank to use the plan price</label><input type="text" id="subAmount" inputmode="numeric"></div>
+  <div class="field"><label for="subProof">Payment reference / proof note</label><input type="text" id="subProof" placeholder="UTR, cheque no., or a note"></div>
+  <button class="btn btn-gold btn-block" id="subSubmitBtn">Create — active immediately</button>
+  <div id="subResult" class="err-msg hidden"></div>
+</div>
+
+<script>
+var API_URL = "https://vmw-portal-api.vastmywealth.workers.dev/";   // same backend as every other page (Cloudflare worker)
+var SITE_BASE = String(location.href).split('#')[0].split('?')[0].replace(/[^\/]*$/, '');
+function refLinkFor(code) { return SITE_BASE + "apply.html?ref=" + encodeURIComponent(code); }
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+  return new Promise(function (res, rej) {
+    try { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); var ok = document.execCommand('copy'); document.body.removeChild(t); ok ? res() : rej(new Error('copy failed')); }
+    catch (e) { rej(e); }
+  });
+}
+
+var ADMIN_PASSWORD = "";
+var SUPER_ADMIN_PHONE = "9594592020";
+var CURRENT_USER_PHONE = "";
+var BANK_DOMAINS_LIST = [];
+var ALL_LEADS = [], ACTIVE_LENDERS = [], ACTIVE_DSAS = [], ALL_PARTNERS = [], ALL_BANKERS = [], ALL_SUBS = [];
+var CURRENT_LEAD = null, SUBS_LOADED = false;
+
+var $ = function (id) { return document.getElementById(id); };
+function esc(s) { var d = document.createElement('div'); d.textContent = (s === undefined || s === null) ? '' : s; return d.innerHTML; }
+function inr(n) { var v = parseFloat(String(n || '').replace(/[^0-9.]/g, '')); return isNaN(v) ? '—' : '₹' + v.toLocaleString('en-IN'); }
+function fmtDate(ts) { if (!ts) return '—'; return new Date(ts).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+function showToast(msg, isError) { var t = $('toast'); t.textContent = msg; t.className = 'toast' + (isError ? ' error' : ''); t.style.display = 'block'; setTimeout(function () { t.style.display = 'none'; }, 3200); }
+
+function apiPost(payload) {
+  if (CURRENT_USER_PHONE === SUPER_ADMIN_PHONE) {
+    payload.superAdminPhone = SUPER_ADMIN_PHONE;
+    payload.mobile = SUPER_ADMIN_PHONE;   // backend reads "mobile"
+  }
+  return fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) })
+    .then(function (r) { return r.text(); })
+    .then(function (raw) { try { return JSON.parse(raw); } catch (e) { throw new Error("Server returned non-JSON response."); } });
+}
+
+function withBusy(btn, label, fn) {
+  var orig = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<span class="spin"></span> ' + esc(label);
+  return fn().finally(function () { btn.disabled = false; btn.innerHTML = orig; });
+}
+
+/* ================= 3. BACK BUTTON NAVIGATION HANDLER ================= */
+// Prevents accidentally exiting or reloading the app when tapping back on phone
+function openSheet(s, b) {
+  $(b).style.display = 'block';
+  $(s).style.display = 'block';
+  window.history.pushState({ modalOpen: true, sheetId: s, backdropId: b }, "");
+}
+
+function closeSheet(s, b) {
+  $(s).style.display = 'none';
+  $(b).style.display = 'none';
+}
+
+window.addEventListener('popstate', function (event) {
+  var openBackdrops = document.querySelectorAll('.backdrop');
+  var anyOpen = false;
+  openBackdrops.forEach(function (el) {
+    if (el.style.display === 'block') {
+      el.style.display = 'none';
+      anyOpen = true;
+    }
+  });
+  var openSheets = document.querySelectorAll('.sheet');
+  openSheets.forEach(function (el) {
+    if (el.style.display === 'block') {
+      el.style.display = 'none';
+      anyOpen = true;
+    }
+  });
+  if (anyOpen) {
+    return; // Closed the sheet on back press
+  }
+  var activeTab = document.querySelector('.tab-pane:not(.hidden)');
+  if (activeTab && activeTab.id !== 'tabLeads') {
+    var leadsTabBtn = document.querySelector('[data-tab="tabLeads"]');
+    if (leadsTabBtn) leadsTabBtn.click();
+  }
+});
+
+function toggleDetail(rowEl) {
+  var d = rowEl.nextElementSibling, c = rowEl.querySelector('.caret');
+  if (!d) return; d.classList.toggle('open'); if (c) c.classList.toggle('open');
+}
+
+/* Click the customer name card -> fetch (once per page load) and render the
+   full Lead Lifecycle history for that lead, right inside the expanded card. */
+var LEAD_HISTORY_CACHE = {};
+function leadEventTagClass(ev) {
+  if (/disbursed/i.test(ev)) return 'ok'; if (/rejected/i.test(ev)) return 'bad';
+  if (/incomplete/i.test(ev)) return 'warn';
+  if (/claimed|routed|assigned/i.test(ev)) return 'info'; return '';
+}
+function loadLeadHistoryInline(rowEl, leadId) {
+  var box = $('hist_' + leadId);
+  if (!box) return;
+  var detail = rowEl.nextElementSibling;
+  if (!detail || !detail.classList.contains('open')) return; // just closed — nothing to load
+  if (LEAD_HISTORY_CACHE[leadId]) { renderLeadHistoryBox(box, LEAD_HISTORY_CACHE[leadId]); return; }
+  box.innerHTML = '<div class="empty">Loading…</div>';
+  apiPost({ action: "adminGetLeadHistory", password: ADMIN_PASSWORD, leadId: leadId }).then(function (r) {
+    var events = (r.success ? r.events : []) || [];
+    LEAD_HISTORY_CACHE[leadId] = events;
+    renderLeadHistoryBox(box, events);
+  }).catch(function () { box.innerHTML = '<div class="error-box">Could not load history.</div>'; });
+}
+function renderLeadHistoryBox(box, events) {
+  if (!events.length) { box.innerHTML = '<div class="empty">No lifecycle events logged yet.</div>'; return; }
+  box.innerHTML = events.map(function (e) {
+    return '<div class="mini-row"><div class="mini-row-top"><span class="lbl">' + esc(e.event) + '</span><span class="tag ' + leadEventTagClass(e.event) + '">' + fmtDate(e.timestamp) + '</span></div>' +
+      '<div class="sub" style="margin-top:4px;">' + esc(e.actorType || '') + (e.actorName ? (' · ' + esc(e.actorName)) : '') + (e.actorCode ? (' (' + esc(e.actorCode) + ')') : '') +
+      (e.commissionPercent !== null && e.commissionPercent !== '' ? (' · VMW ' + esc(e.commissionPercent) + '%') : '') + '</div>' +
+      (e.details ? ('<div class="sub" style="margin-top:2px;">' + esc(e.details) + '</div>') : '') + '</div>';
+  }).join('');
+}
+
+/* ================= AUTO-LOGIN & 9594592020 SUPER ADMIN ================= */
+document.addEventListener("DOMContentLoaded", function () {
+  var urlParams = new URLSearchParams(window.location.search);
+  var phoneParam = urlParams.get('phone') || urlParams.get('mobile') || urlParams.get('superAdmin');
+  if (phoneParam && String(phoneParam).replace(/\D/g, '') === SUPER_ADMIN_PHONE) {
+    CURRENT_USER_PHONE = SUPER_ADMIN_PHONE;
+    localStorage.setItem('vmw_admin_phone', SUPER_ADMIN_PHONE);
+    $('superAdminBadge').classList.remove('hidden');
+  } else {
+    var storedPhone = localStorage.getItem('vmw_admin_phone');
+    if (storedPhone === SUPER_ADMIN_PHONE) {
+      CURRENT_USER_PHONE = SUPER_ADMIN_PHONE;
+      $('superAdminBadge').classList.remove('hidden');
+    }
+  }
+
+  var savedPin = localStorage.getItem('vmw_admin_pin');
+  var cachedData = localStorage.getItem('vmw_admin_cache');
+  if (savedPin || CURRENT_USER_PHONE === SUPER_ADMIN_PHONE) {
+    ADMIN_PASSWORD = savedPin || "";
+    $("loginScreen").style.display = "none";
+    $("app").style.display = "block";
+    if (cachedData) {
+      try { applyDashboardData(JSON.parse(cachedData)); } catch(e){}
+    }
+    loadBankerTabData();
+    apiPost({ action: "adminGetDashboardData", password: ADMIN_PASSWORD }).then(function (r) {
+      if (r.success) { localStorage.setItem('vmw_admin_cache', JSON.stringify(r)); applyDashboardData(r); }
+      else if (r.error === 'Unauthorized') {   // stale saved PIN / phone: back to the login screen instead of a dead dashboard
+        try { localStorage.removeItem('vmw_admin_pin'); localStorage.removeItem('vmw_admin_cache'); } catch (e) {}
+        ADMIN_PASSWORD = ""; $("app").style.display = "none"; $("loginScreen").style.display = "block";
+        $("loginError").textContent = "Session expired — please sign in again."; $("loginError").classList.remove('hidden');
+      }
+    }).catch(function () {});
+  }
+});
+
+function doLogin() {
+  var pw = $("adminPassword").value.trim(), errEl = $("loginError");
+  errEl.classList.add('hidden');
+  if (!pw) return;
+
+  var cleanPhone = pw.replace(/\D/g, "");
+  var payload = { action: "adminLogin", password: pw };
+  if (cleanPhone === SUPER_ADMIN_PHONE || CURRENT_USER_PHONE === SUPER_ADMIN_PHONE) {
+    CURRENT_USER_PHONE = SUPER_ADMIN_PHONE;
+    payload.mobile = SUPER_ADMIN_PHONE;
+  }
+
+  withBusy($("loginBtn"), "Signing in…", function () {
+    return apiPost(payload).then(function (r) {
+      if (!r.success) {
+        errEl.textContent = r.error ? ("Server said: " + r.error) : "Incorrect password or unauthorized phone number. (server reply: " + JSON.stringify(r).slice(0, 160) + ")";
+        errEl.classList.remove('hidden');
+        return;
+      }
+      ADMIN_PASSWORD = pw;
+      localStorage.setItem('vmw_admin_pin', pw);
+      if (r.isSuperAdmin || CURRENT_USER_PHONE === SUPER_ADMIN_PHONE) {
+        CURRENT_USER_PHONE = SUPER_ADMIN_PHONE;
+        localStorage.setItem('vmw_admin_phone', SUPER_ADMIN_PHONE);
+        $('superAdminBadge').classList.remove('hidden');
+      }
+      $("loginScreen").style.display = "none";
+      $("app").style.display = "block";
+      $("leadsContainer").innerHTML = '<div class="empty">Loading leads…</div>';
+      loadBankerTabData();
+      return apiPost({ action: "adminGetDashboardData", password: ADMIN_PASSWORD }).then(function (result) {
+        if (result.success) {
+          localStorage.setItem('vmw_admin_cache', JSON.stringify(result));
+          applyDashboardData(result);
+        } else {
+          $("leadsContainer").innerHTML = '<div class="error-box">Failed to load: ' + esc(result.error || "Unknown error") + '</div>';
+        }
+      });
+    }).catch(function (err) {
+      errEl.textContent = "Connection error: " + err.message;
+      errEl.classList.remove('hidden');
+    });
+  });
+}
+
+function applyDashboardData(result) {
+  ALL_LEADS = result.leads || [];
+  ACTIVE_LENDERS = result.lenders || [];
+  ACTIVE_DSAS = result.dsas || [];
+  ALL_PARTNERS = result.partners || [];
+  renderLeads();
+  renderPartners();
+}
+
+function loadBankerTabData() {
+  loadBankers();
+  loadPendingCodes();
+  loadBlockedBankers();
+  loadPendingPartnerBankers();
+  SUBS_LOADED = true;
+  loadSubscriptions();
+}
+
+/* ================= 2. PENDING BANKERS & DOMAIN DROPDOWN ================= */
+function loadPendingPartnerBankers() {
+  $('pendingPartnerBankersContainer').innerHTML = '<div class="empty">Loading pending approvals…</div>';
+  apiPost({ action: "adminListPendingPartnerBankers", password: ADMIN_PASSWORD }).then(function (r) {
+    var pending = (r.status === 'success' ? r.pending : []) || [];
+    BANK_DOMAINS_LIST = r.bankDomains || [];
+    var el = $('pendingPartnerBankersContainer');
+    if (!pending.length) { el.innerHTML = '<div class="empty">None waiting right now.</div>'; return; }
+
+    el.innerHTML = pending.map(function (p, pIdx) {
+      var bankOptions = '<option value="">-- Choose/Verify Bank Domain --</option>' +
+        BANK_DOMAINS_LIST.map(function(bd) {
+          var sel = (p.bankName && p.bankName.toLowerCase() === bd.bankName.toLowerCase()) ? 'selected' : '';
+          return '<option value="' + esc(bd.domain) + '" ' + sel + ' data-bank="' + esc(bd.bankName) + '">' + esc(bd.bankName) + ' (@' + esc(bd.domain) + ')</option>';
+        }).join('');
+
+      var domainStatusHtml = '';
+      if (p.domainMatch === true) {
+        domainStatusHtml = '<span class="tag ok">✅ Official Email Verified (@' + esc(p.expectedDomain) + ')</span>';
+      } else if (p.domainMatch === false) {
+        domainStatusHtml = '<span class="tag bad">⚠ Domain Mismatch: expected @' + esc(p.expectedDomain) + ', got @' + esc(p.emailDomain) + '</span>';
+      } else {
+        domainStatusHtml = '<span class="tag warn">Domain not checked</span>';
+      }
+
+      return '<div class="card" data-card-idx="' + pIdx + '">' +
+        '<div class="card-row" style="cursor:default;">' +
+          '<div>' +
+            '<div class="name">' + esc(p.name || p.bankerId) + '</div>' +
+            '<div class="sub">' + esc(p.bankName || '—') + ' · ' + esc(p.mobile || '') + ' · <b>' + esc(p.email || 'No email') + '</b></div>' +
+            '<div class="sub">Referred by Partner: ' + esc(p.referredBy) + '</div>' +
+          '</div>' +
+          '<div style="display:flex;gap:6px;">' +
+            '<button class="btn btn-ok btn-sm" data-approve-pb="' + esc(p.bankerId) + '">Approve</button>' +
+            '<button class="btn btn-bad btn-sm" data-reject-pb="' + esc(p.bankerId) + '" data-reject-pb-name="' + esc(p.name || p.bankerId) + '">Reject</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="domain-check-box">' +
+          '<div style="font-size:11.5px;font-weight:700;color:var(--gold-light);margin-bottom:4px;">VERIFY BANK OFFICIAL EMAIL DOMAIN</div>' +
+          '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
+            '<select class="bank-domain-select" style="padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:#fff;font-size:12px;flex:1;min-width:200px;" onchange="onBankDomainChanged(' + pIdx + ', this.value, \'' + esc(p.email || '') + '\')">' + bankOptions + '</select>' +
+            '<div id="domainStatus_' + pIdx + '">' + domainStatusHtml + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }).catch(function () { $('pendingPartnerBankersContainer').innerHTML = '<div class="error-box">Could not load pending bankers.</div>'; });
+}
+
+function onBankDomainChanged(pIdx, expectedDomain, email) {
+  var statusEl = $('domainStatus_' + pIdx);
+  if (!statusEl) return;
+  var emailDomain = (email.indexOf('@') !== -1) ? email.split('@').pop().toLowerCase() : '';
+  if (!expectedDomain) {
+    statusEl.innerHTML = '<span class="tag warn">Select a bank to verify domain</span>';
+    return;
+  }
+  if (emailDomain === expectedDomain.toLowerCase()) {
+    statusEl.innerHTML = '<span class="tag ok">✅ Official Email Verified (@' + esc(expectedDomain) + ')</span>';
+  } else {
+    statusEl.innerHTML = '<span class="tag bad">⚠ Domain Mismatch: expected @' + esc(expectedDomain) + ', got @' + esc(emailDomain) + '</span>';
+  }
+}
+
+$('pendingPartnerBankersContainer').addEventListener('click', function (e) {
+  var approveBtn = e.target.closest('[data-approve-pb]');
+  if (approveBtn) {
+    withBusy(approveBtn, 'Approving…', function () {
+      return apiPost({ action: "adminApprovePartnerBanker", password: ADMIN_PASSWORD, bankerId: approveBtn.getAttribute('data-approve-pb') }).then(function (r) {
+        showToast(r.status === 'success' ? 'Approved successfully' : (r.message || 'Failed'), r.status !== 'success');
+        if (r.status === 'success') { loadPendingPartnerBankers(); loadBankers(); }
+      });
+    }).catch(function (err) { showToast(err.message, true); });
+    return;
+  }
+  var rejectBtn = e.target.closest('[data-reject-pb]');
+  if (rejectBtn) {
+    var name = rejectBtn.getAttribute('data-reject-pb-name') || 'this banker';
+    var reason = prompt('Reason for rejecting ' + name + ' (the referring partner will see this):');
+    if (reason === null) return;
+    reason = reason.trim();
+    if (!reason) { showToast('A reason is required', true); return; }
+    withBusy(rejectBtn, 'Rejecting…', function () {
+      return apiPost({ action: "adminRejectPartnerBanker", password: ADMIN_PASSWORD, bankerId: rejectBtn.getAttribute('data-reject-pb'), reason: reason }).then(function (r) {
+        showToast(r.status === 'success' ? 'Rejected — partner notified' : (r.message || 'Failed'), r.status !== 'success');
+        if (r.status === 'success') { loadPendingPartnerBankers(); loadBankers(); }
+      });
+    }).catch(function (err) { showToast(err.message, true); });
+  }
+});
+
+function refreshAll() {
+  $("leadsContainer").innerHTML = '<div class="empty">Loading leads…</div>';
+  apiPost({ action: "adminClearCache", password: ADMIN_PASSWORD }).catch(function () {})
+    .then(function () { return apiPost({ action: "adminGetDashboardData", password: ADMIN_PASSWORD, includeHidden: currentIncludeHidden() }); })
+    .then(function (result) {
+      if (result.success) { localStorage.setItem('vmw_admin_cache', JSON.stringify(result)); applyDashboardData(result); showToast("Refreshed"); }
+      else showToast(result.error || "Failed to refresh", true);
+      loadBankerTabData();
+    })
+    .catch(function () { showToast("Connection error", true); });
+}
+
+/* ================= TABS ================= */
+document.querySelectorAll('.tab-btn').forEach(function (b) {
+  b.addEventListener('click', function () {
+    document.querySelectorAll('.tab-btn').forEach(function (x) { x.classList.toggle('active', x === b); });
+    document.querySelectorAll('.tab-pane').forEach(function (p) { p.classList.toggle('hidden', p.id !== b.dataset.tab); });
+    window.scrollTo(0, 0);
+    window.history.pushState({ tab: b.dataset.tab }, "");
+    if (b.dataset.tab === 'tabSubs' && !SUBS_LOADED) { SUBS_LOADED = true; loadSubscriptions(); }
+    if (b.dataset.tab === 'tabTeam') loadTeam();
+    if (b.dataset.tab === 'tabFb') fbInit();
+    if (b.dataset.tab === 'tabOrg') orgInit();
+  });
+});
+
+$('globalSearch').addEventListener('input', function () {
+  var active = document.querySelector('.tab-btn.active').dataset.tab;
+  if (active === 'tabLeads') { renderLeads(); }
+  else if (active === 'tabBankers') { $('bankerSearchBox').value = this.value; renderBankers(); }
+  else if (active === 'tabPartners') { $('partnerSearchBox').value = this.value; renderPartners(); }
+});
+
+/* ================= LEADS ================= */
+function idSortKey(id) { var d = String(id || "").match(/\d+/g); return d ? Number(d[d.length - 1]) : 0; }
+function currentIncludeHidden() { return !!$("showHiddenCheckbox").checked; }
+function reloadLeadsOnly() {
+  $("leadsContainer").innerHTML = '<div class="empty">Loading leads…</div>';
+  apiPost({ action: "adminGetAllLeads", password: ADMIN_PASSWORD, includeHidden: currentIncludeHidden() }).then(function (result) {
+    if (result.success) { ALL_LEADS = result.leads || []; renderLeads(); }
+    else $("leadsContainer").innerHTML = '<div class="error-box">' + esc(result.error || "Failed to load leads") + '</div>';
+  }).catch(function (err) { $("leadsContainer").innerHTML = '<div class="error-box">' + esc(err.message) + '</div>'; });
+}
+
+function stageTagClass(stage) {
+  if (stage === 'Disbursed') return 'ok'; if (stage === 'Approved') return 'info';
+  if (stage === 'Rejected') return 'bad'; if (stage === 'In process') return 'warn'; return '';
+}
+
+function renderLeads() {
+  var q = ($('globalSearch').value || '').toLowerCase();
+  var productF = $('productFilter').value, stageF = $('stageFilter').value, docF = $('docFilter').value, stateF = ($('stateFilter').value || '').toLowerCase();
+  var container = $('leadsContainer');
+  var leads = ALL_LEADS.filter(function (l) {
+    if (q) { var hay = ((l.name || '') + ' ' + (l.companyName || '') + ' ' + (l.mobile || '')).toLowerCase(); if (hay.indexOf(q) === -1) return false; }
+    if (productF && l.product !== productF) return false;
+    if (stageF && l.stage !== stageF) return false;
+    if (docF && l.documentStatus !== docF) return false;
+    if (stateF && (l.state || '').toLowerCase().indexOf(stateF) === -1) return false;
+    if ($('attentionFilter').checked && !l.needsAttention) return false;
+    if ($('awaitingFilter').checked && !l.pendingParties) return false;
+    return true;
+  });
+  leads.sort(function (a, b) { return idSortKey(b.leadId) - idSortKey(a.leadId); });
+  var counts = { total: ALL_LEADS.length, pending: 0, attention: 0, awaiting: 0, disbursed: 0, rejected: 0 };
+  ALL_LEADS.forEach(function (l) {
+  if (l.documentStatus === 'Pending') counts.pending++;
+  if (l.stage === 'Disbursed') counts.disbursed++;
+  if (l.stage === 'Rejected') counts.rejected++;
+  if (l.needsAttention) counts.attention++;
+  if (l.pendingParties) counts.awaiting++;
+});
+  $('leadsStats').innerHTML = ['total', 'pending', 'attention', 'awaiting', 'disbursed', 'rejected'].map(function (k) {
+    var lbl = { total: 'Total leads', pending: 'Docs pending', attention: 'Needs attention', disbursed: 'Disbursed', rejected: 'Rejected', awaiting: 'Awaiting updates' }[k];
+    return '<div class="stat-box"><b>' + counts[k] + '</b><span>' + lbl + '</span></div>';
+  }).join('');
+    if (!leads.length) { container.innerHTML = '<div class="empty">No leads match your filters.</div>'; return; }
+
+  var sent = [], pending = [], hold = [], verify = [];
+  leads.forEach(function (l) {
+    var b = leadBucket(l);
+    (b === 'sent' ? sent : b === 'hold' ? hold : b === 'verify' ? verify : pending).push(l);
+  });
+
+  var buckets = [
+    { key: 'verify', label: 'Verify documents', list: verify },
+    { key: 'sent', label: 'Sent to DSA', list: sent },
+    { key: 'pending', label: 'Pending documents', list: pending },
+    { key: 'hold', label: 'Hold / Reject', list: hold }
+  ];
+  if (!buckets.some(function (b) { return b.key === LEAD_BUCKET; })) LEAD_BUCKET = 'pending';
+  var tabsHtml = '<div class="bucket-tabs" style="display:flex;gap:6px;margin:14px 0 4px;">' + buckets.map(function (b) {
+    var on = b.key === LEAD_BUCKET;
+    return '<button type="button" onclick="setLeadBucket(\'' + b.key + '\')" style="flex:1;padding:10px 6px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid ' +
+      (on ? 'var(--navy,#16233F)' : 'var(--line,#d0d5dd)') + ';background:' + (on ? 'var(--navy,#16233F)' : 'transparent') + ';color:' + (on ? '#fff' : 'inherit') + ';">' +
+      esc(b.label) + ' (' + b.list.length + ')</button>';
+  }).join('') + '</div>';
+  var cur = buckets.filter(function (b) { return b.key === LEAD_BUCKET; })[0];
+  container.innerHTML = tabsHtml + (cur.list.length ? cur.list.map(leadCardHtml).join('') : '<div class="empty">No leads in this section.</div>');
+}
+var LEAD_BUCKET = 'pending';
+function setLeadBucket(k) { LEAD_BUCKET = k; renderLeads(); }
+
+/* Which of the 3 sections a lead belongs to (state comes from the backend rules engine) */
+function leadBucket(l) {
+  if (l.leadState === 'Sent to DSA' || sentDsaNames(l).length) return 'sent';
+  if (l.leadState === 'Hold' || l.leadState === 'Rejected') return 'hold';
+  if (l.leadState === 'Needs Verification') return 'verify';
+  return 'pending';   // Pending Documents, Ready (goes at the next 9 AM run) and older leads with no state
+}
+function leadStateTags(l) {
+  var t = '';
+  if (l.leadState === 'Pending Documents') t += '<span class="tag warn">Pending documents</span>';
+  else if (l.leadState === 'Needs Verification') t += '<span class="tag warn">Needs verification</span>';
+  else if (l.leadState === 'Ready') t += '<span class="tag ok">Ready — sends at next 9 AM run</span>';
+  else if (l.leadState === 'Hold') t += '<span class="tag bad">Hold</span>';
+  else if (l.leadState === 'Rejected') t += '<span class="tag bad">Rejected</span>';
+  else if (l.leadState === 'Sent to DSA') t += '<span class="tag info">Sent to DSA</span>';
+  else if (!l.leadState && leadBucket(l) === 'pending') t += '<span class="tag">Older lead — send manually</span>';
+  if (l.startup) t += '<span class="tag info">Startup</span>';
+  return t;
+}
+function verifyLead(idx, ok) {
+  var l = ALL_LEADS[idx]; if (!l) return;
+  var note = '';
+  if (ok) { if (!window.confirm('Confirm PAN, Aadhaar and bank statement are the correct documents? The lead will go to the DSA at the next 9 AM run.')) return; }
+  else { note = window.prompt('Which documents must the customer re-send?', '') || ''; if (!note.trim()) return; }
+  apiPost({ action: 'adminVerifyLead', password: ADMIN_PASSWORD, leadId: l.leadId, product: l.product, ok: ok, note: note }).then(function (r) {
+    if (r && r.success) { showToast(ok ? 'Verified — state: ' + (r.state || 'updated') : 'Sent back to customer'); reloadLeadsOnly(); } else { showToast((r && r.error) || 'Could not update.', true); }
+  }).catch(function (e) { showToast('Connection error: ' + e.message, true); });
+}
+function setLeadState(idx, state) {
+  var l = ALL_LEADS[idx]; if (!l) return;
+  var note = '';
+  if (state === 'Hold' || state === 'Rejected') { note = window.prompt('Reason (optional):', '') || ''; }
+  else if (!window.confirm('Release this lead? It will be sent to the DSA at the next 9 AM run even if a rule failed.')) return;
+  apiPost({ action: 'adminSetLeadState', password: ADMIN_PASSWORD, leadId: l.leadId, product: l.product, state: state, note: note }).then(function (r) {
+    if (r && r.success) { showToast('Lead updated'); reloadLeadsOnly(); } else { showToast((r && r.error) || 'Could not update.', true); }
+  }).catch(function (e) { showToast('Connection error: ' + e.message, true); });
+}
+
+/* DSAs a lead has been sent to (from pipeline rows; also covers a just-assigned lead) */
+function sentDsaNames(l) {
+  var seen = {}, out = [];
+  function add(n) { n = String(n || '').trim(); if (n && !seen[n]) { seen[n] = true; out.push(n); } }
+  (l.pipeline || []).forEach(function (p) { String(p.assignedDsa || '').split(',').forEach(add); });
+  (l.sentToDsas || []).forEach(add);
+  return out;
+}
+
+function leadCardHtml(l) {
+  var idx = ALL_LEADS.indexOf(l);
+  var isDirect = (l.partnerName === 'Direct' || !l.partnerName);
+  var displayName = isDirect ? esc(l.name || '—') : '<span class="cp">' + esc(l.partnerName) + '</span> — ' + esc(l.name || '—');
+  var loc = [l.state, l.pincode].filter(Boolean).join(' · ');
+  var activeClaim = (l.claims || []).find(function (c) { return c.claimStatus === 'Active'; });
+  var dsas = sentDsaNames(l);
+  return '' +
+    '<div class="card">' +
+      '<div class="card-row" onclick="toggleDetail(this); loadLeadHistoryInline(this, \'' + esc(l.leadId) + '\');">' +
+        '<div><div class="name">' + displayName + (l.needsAttention ? ' <span class="tag bad">Needs attention</span>' : '') + (l.pendingParties ? ' <span class="tag warn">' + l.pendingParties + ' awaiting</span>' : '') + '</div>' +
+        '<div class="sub">' + esc(l.product || '—') + ' · ' + inr(l.loanAmount) + (loc ? (' · ' + esc(loc)) : '') + '</div>' +
+        (dsas.length ? '<div class="sub" style="color:var(--info);">Sent to: ' + esc(dsas.join(', ')) + '</div>' : '') + '</div>' +
+        '<span class="caret">▼</span>' +
+      '</div>' +
+      '<div class="card-detail">' +
+        '<div class="meta-line">' +
+          '<span class="tag ' + stageTagClass(l.stage) + '">' + esc(l.stage) + '</span>' +
+          leadStateTags(l) +
+          (l.documentStatus === 'Pending' ? '<span class="tag warn">Docs pending</span>' : (l.documentStatus === 'Submitted' ? '<span class="tag ok">Docs received</span>' : '')) +
+          (l.hidden ? '<span class="tag">Hidden</span>' : '') +
+          (l.processingBank ? '<span class="tag info">' + esc(l.processingBank) + '</span>' : '') +
+          dsas.map(function (n) { return '<span class="tag info">DSA: ' + esc(n) + '</span>'; }).join('') +
+          (activeClaim ? '<span class="tag info">With ' + esc(activeClaim.bankerName) + (activeClaim.dsaName ? (' · DSA ' + esc(activeClaim.dsaName)) : '') + '</span>' : '') +
+          (l.category ? '<span class="tag">Cat ' + esc(l.category) + '</span>' : '') +
+          '<span class="tag' + (l.commissionPercent === 100 ? ' ok' : '') + '">VMW share ' + esc(l.commissionPercent) + '%</span>' +
+          (l.isExclusive ? ('<span class="tag warn">Exclusive to ' + esc(l.sourcedByName || l.sourcedBy) + ' — ' + l.exclusiveDaysLeft + ' day' + (l.exclusiveDaysLeft === 1 ? '' : 's') + ' left</span>') : '') +
+        '</div>' +
+        (l.stateReason ? '<div class="meta-line" style="color:var(--bad,#b42318);">' + esc(l.stateReason) + '</div>' : '') +
+        '<div class="meta-line">' + esc(l.mobile || '') + (l.email ? (' · ' + esc(l.email)) : '') + '</div>' +
+        (l.companyName ? '<div class="meta-line">' + esc(l.companyName) + '</div>' : '') +
+        '<div class="icon-row" style="margin-bottom:10px;">' +
+          (l.mobile ? '<a class="icon-btn" href="tel:' + esc(l.mobile) + '" title="Call">☎</a>' : '') +
+          (l.mobile ? '<a class="icon-btn" href="https://wa.me/91' + esc(String(l.mobile).replace(/\D/g,"")) + '" target="_blank" rel="noopener" title="WhatsApp">✓</a>' : '') +
+          (l.documentsFolderUrl ? '<a class="icon-btn" href="' + esc(l.documentsFolderUrl) + '" target="_blank" rel="noopener" title="Documents">📁</a>' : '') +
+        '</div>' +
+        '<div class="section-label">Full lead history</div>' +
+        '<div class="lead-history-box" id="hist_' + esc(l.leadId) + '"><div class="empty">Loading…</div></div>' +
+        '<button class="btn btn-line btn-block" style="margin-top:8px;" onclick="event.stopPropagation(); openLeadSheet(' + idx + ')">Manage pipeline, claims &amp; DSA</button>' +
+        (l.leadState === 'Needs Verification' ? ('<div style="display:flex;gap:8px;margin-top:8px;">' +
+          '<button class="btn btn-line" style="flex:1;" onclick="event.stopPropagation(); verifyLead(' + idx + ', true)">✅ Documents OK — release</button>' +
+          '<button class="btn btn-line" style="flex:1;" onclick="event.stopPropagation(); verifyLead(' + idx + ', false)">Documents not OK</button></div>') : '') +
+        (leadBucket(l) !== 'sent' ? ('<div style="display:flex;gap:8px;margin-top:8px;">' +
+          '<button class="btn btn-line" style="flex:1;" onclick="event.stopPropagation(); setLeadState(' + idx + ', \'Release\')">Release to DSA</button>' +
+          '<button class="btn btn-line" style="flex:1;" onclick="event.stopPropagation(); setLeadState(' + idx + ', \'Hold\')">Hold</button>' +
+          '<button class="btn btn-line" style="flex:1;" onclick="event.stopPropagation(); setLeadState(' + idx + ', \'Rejected\')">Reject</button></div>') : '') +
+      '</div>' +
+    '</div>';
+}
+
+function openLeadSheet(idx) {
+  CURRENT_LEAD = ALL_LEADS[idx];
+  if (!CURRENT_LEAD) return;
+  $('sheetName').textContent = CURRENT_LEAD.name || '—';
+  $('sheetSub').textContent = (CURRENT_LEAD.companyName ? CURRENT_LEAD.companyName + ' · ' : '') + CURRENT_LEAD.product + ' · ' + inr(CURRENT_LEAD.loanAmount) + ' · ' + CURRENT_LEAD.mobile + ' · VMW share ' + CURRENT_LEAD.commissionPercent + '%';
+  renderPipelineRows(); renderClaimHistory(); renderLenderSelectList(); renderDsaSelectList();
+  $('hideLeadBtn').textContent = CURRENT_LEAD.hidden ? 'Unhide (show again)' : 'Hide from list';
+  var isVlEl = (CURRENT_LEAD.product === 'VL' || CURRENT_LEAD.product === 'EL');
+  $('processingBankSection').classList.toggle('hidden', !isVlEl);
+  if (isVlEl) $('processingBankInput').value = CURRENT_LEAD.processingBank || '';
+
+  var excl = $('exclusivityBanner');
+  if (CURRENT_LEAD.isExclusive) {
+    excl.textContent = '🔒 Exclusive to ' + (CURRENT_LEAD.sourcedByName || CURRENT_LEAD.sourcedBy) + ' for ' + CURRENT_LEAD.exclusiveDaysLeft + ' more day(s). It can\'t be assigned to lenders or a processing DSA — by anyone, including admin — until the window ends or the subscriber releases it.';
+    excl.classList.remove('hidden');
+    $('addLendersBtn').disabled = true; $('assignDsaBtn').disabled = true;
+  } else {
+    excl.classList.add('hidden');
+    $('addLendersBtn').disabled = false; $('assignDsaBtn').disabled = false;
+  }
+
+  $('sheetHistoryRows').innerHTML = '<div class="empty">Loading…</div>';
+  apiPost({ action: "adminGetLeadHistory", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId }).then(function (r) {
+    LEAD_HISTORY_CACHE[CURRENT_LEAD.leadId] = (r.success ? r.events : []) || [];
+    renderLeadHistoryBox($('sheetHistoryRows'), LEAD_HISTORY_CACHE[CURRENT_LEAD.leadId]), renderFollowUps();
+  }).catch(function () { $('sheetHistoryRows').innerHTML = '<div class="error-box">Could not load history.</div>'; });
+
+  openSheet('leadSheet', 'leadBackdrop');
+}
+
+$('closeLeadSheet').addEventListener('click', function () { closeSheet('leadSheet', 'leadBackdrop'); });
+$('leadBackdrop').addEventListener('click', function () { closeSheet('leadSheet', 'leadBackdrop'); });
+
+function renderPipelineRows() {
+  var el = $('pipelineRows'), pipeline = CURRENT_LEAD.pipeline || [];
+  if (!pipeline.length) {
+    el.innerHTML = '<div class="empty">No lenders assigned by admin yet — add some below.</div>';
+  } else {
+    el.innerHTML = pipeline.map(function (p) {
+      var safe = p.lender.replace(/'/g, "\\'");
+      var options = ["In Process", "Approved", "Disbursed", "Rejected"].map(function (s) { return '<option value="' + s + '" ' + (s === p.status ? 'selected' : '') + '>' + s + '</option>'; }).join('');
+      return '<div class="mini-row"><div class="mini-row-top"><span class="lbl">' + esc(p.lender) + '</span><select onchange="updateStatus(\'' + safe + '\', this.value)">' + options + '</select></div>' +
+        (p.assignedDsa ? ('<div class="sub" style="margin-top:4px;">Sent to: ' + esc(p.assignedDsa) + '</div>') : '') + '</div>';
+    }).join('');
+  }
+  renderFollowUps();
+}
+
+function renderClaimHistory() {
+  var el = $('claimHistoryRows'), claims = CURRENT_LEAD.claims || [];
+  if (!claims.length) { el.innerHTML = '<div class="empty">No banker has claimed this lead from the pool.</div>'; return; }
+  el.innerHTML = claims.map(function (c) {
+    var cls = c.claimStatus === 'Disbursed' ? 'ok' : c.claimStatus === 'Rejected' ? 'bad' : 'info';
+    return '<div class="mini-row"><div class="mini-row-top"><span class="lbl">' + esc(c.bankerName || c.bankerCode) + '</span><span class="tag ' + cls + '">' + esc(c.claimStatus) + '</span></div>' +
+      '<div class="sub" style="margin-top:4px;">DSA code: ' + esc(c.dsaCodeUsed || '—') + (c.dsaName ? (' (' + esc(c.dsaName) + ')') : '') + ' · Claimed ' + fmtDate(c.claimedAt) +
+      (c.claimStatus === 'Disbursed' ? (' · ' + inr(c.disbursedAmount)) : '') +
+      (c.claimStatus === 'Rejected' && c.rejectionReason ? (' · ' + esc(c.rejectionReason)) : '') + '</div></div>';
+  }).join('');
+}
+
+function renderLenderSelectList() {
+  var el = $('lenderSelectList'), already = {};
+  (CURRENT_LEAD.pipeline || []).forEach(function (p) { already[p.lender] = true; });
+  var relevant = ACTIVE_LENDERS.filter(function (l) { return l.product === CURRENT_LEAD.product && !already[l.name]; });
+  el.innerHTML = relevant.length ? relevant.map(function (l) { return '<label><input type="checkbox" value="' + esc(l.name) + '" class="lenderCheckbox"> ' + esc(l.name) + ' <span class="sub">(Cat ' + esc(l.category) + ')</span></label>'; }).join('')
+    : '<div class="empty">No more lenders available for this loan type.</div>';
+}
+
+function renderDsaSelectList() {
+  var el = $('dsaSelectList');
+  el.innerHTML = ACTIVE_DSAS.length ? ACTIVE_DSAS.map(function (d, i) { return '<label><input type="radio" name="dsaPick" value="' + i + '"><span>' + esc(d.name) + '<br><span class="sub">' + esc(d.emails) + '</span></span></label>'; }).join('')
+    : '<div class="empty">No processing DSAs added yet — add rows in the "DSA Partners" sheet tab.</div>';
+}
+
+function updateStatus(lenderName, status) {
+  apiPost({ action: "adminUpdateLenderStatus", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId, lenderName: lenderName, status: status }).then(function (r) {
+    if (r.success) { showToast("Status updated"); var row = CURRENT_LEAD.pipeline.find(function (p) { return p.lender === lenderName; }); if (row) row.status = status; renderLeads(); renderPipelineRows(); }
+    else showToast(r.error || "Update failed", true);
+  }).catch(function (err) { showToast("Connection error: " + err.message, true); });
+}
+$('addLendersBtn').addEventListener('click', function () {
+  var checked = Array.prototype.slice.call(document.querySelectorAll('.lenderCheckbox:checked')).map(function (c) { return c.value; });
+  if (!checked.length) { showToast("Select at least one lender"); return; }
+  withBusy(this, 'Adding…', function () {
+    return apiPost({ action: "adminAddLendersToPipeline", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId, mobile: CURRENT_LEAD.mobile, customerName: CURRENT_LEAD.name, companyName: CURRENT_LEAD.companyName, product: CURRENT_LEAD.product, lenderNames: checked })
+      .then(function (r) {
+        if (r.success) { showToast("Lenders added"); checked.forEach(function (name) { CURRENT_LEAD.pipeline.push({ lender: name, status: "In Process", assignedDsa: "" }); }); renderPipelineRows(); renderLenderSelectList(); renderLeads(); }
+        else showToast(r.error || "Failed to add lenders", true);
+      });
+  }).catch(function (err) { showToast("Connection error: " + err.message, true); });
+});
+
+$('assignDsaBtn').addEventListener('click', function () {
+  var picked = document.querySelector('input[name="dsaPick"]:checked');
+  if (!picked) { showToast("Select a DSA"); return; }
+  var dsa = ACTIVE_DSAS[picked.value];
+  var lenderNames = (CURRENT_LEAD.pipeline || []).map(function (p) { return p.lender; });
+  if (!lenderNames.length) { showToast("Add lenders to the pipeline first"); return; }
+  withBusy(this, 'Sending…', function () {
+    return apiPost({ action: "adminAssignDsa", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId, mobile: CURRENT_LEAD.mobile, customerName: CURRENT_LEAD.name, companyName: CURRENT_LEAD.companyName, product: CURRENT_LEAD.product, loanAmount: CURRENT_LEAD.loanAmount, dsaName: dsa.name, dsaEmails: dsa.emails, lenderNames: lenderNames, assignedBy: "Admin" })
+      .then(function (r) {
+        if (r.success) {
+          showToast("Assigned — documents emailed to " + dsa.name);
+          CURRENT_LEAD.pipeline.forEach(function (p) { var names = p.assignedDsa ? p.assignedDsa.split(",").map(function (s) { return s.trim(); }) : []; if (names.indexOf(dsa.name) === -1) names.push(dsa.name); p.assignedDsa = names.join(", "); });
+          if (!CURRENT_LEAD.sentToDsas) CURRENT_LEAD.sentToDsas = [];
+          if (CURRENT_LEAD.sentToDsas.indexOf(dsa.name) === -1) CURRENT_LEAD.sentToDsas.push(dsa.name);
+          CURRENT_LEAD.isAllocated = true;
+          renderPipelineRows(); renderLeads();
+        } else showToast(r.error || "Assignment failed", true);
+      });
+  }).catch(function (err) { showToast("Connection error: " + err.message, true); });
+});
+
+function fileToBase64(file) {
+  return new Promise(function (resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function () { resolve(String(reader.result).split(',')[1]); };
+    reader.onerror = function () { reject(new Error('Could not read ' + file.name)); };
+    reader.readAsDataURL(file);
+  });
+}
+$('waDocUploadBtn').addEventListener('click', function () {
+  if (!CURRENT_LEAD) return;
+  var files = Array.prototype.slice.call($('waDocFiles').files || []);
+  var prog = $('waDocProgress');
+  if (!files.length) { showToast("Choose at least one file first", true); return; }
+  prog.classList.remove('hidden');
+  withBusy(this, 'Uploading…', function () {
+    var ok = 0, failed = [];
+    return files.reduce(function (chain, file, i) {
+      return chain.then(function () {
+        prog.textContent = 'Uploading ' + (i + 1) + ' of ' + files.length + ' — ' + file.name;
+        return fileToBase64(file)
+          .then(function (base64) {
+            return apiPost({ action: "adminUploadDocument", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId, product: CURRENT_LEAD.product,
+              file: { name: file.name, mimeType: file.type, base64: base64 } });
+          })
+          .then(function (r) { if (r && r.success) ok++; else failed.push(file.name); })
+          .catch(function () { failed.push(file.name); });
+      });
+    }, Promise.resolve()).then(function () {
+      if (!ok) { prog.textContent = ''; showToast("Upload failed for all file(s)", true); return; }
+      return apiPost({ action: "adminFinalizeDocuments", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId, product: CURRENT_LEAD.product, fileCount: ok }).then(function () {
+        prog.textContent = '';
+        $('waDocFiles').value = '';
+        showToast(failed.length ? (ok + ' uploaded, ' + failed.length + ' failed: ' + failed.join(', ')) : ('All ' + ok + ' file(s) uploaded to the customer folder'), !!failed.length);
+        CURRENT_LEAD.documentStatus = 'Submitted';
+        delete LEAD_HISTORY_CACHE[CURRENT_LEAD.leadId];
+        apiPost({ action: "adminGetLeadHistory", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId }).then(function (r) {
+          LEAD_HISTORY_CACHE[CURRENT_LEAD.leadId] = (r.success ? r.events : []) || [];
+          renderLeadHistoryBox($('sheetHistoryRows'), LEAD_HISTORY_CACHE[CURRENT_LEAD.leadId]);
+        });
+        reloadLeadsOnly();
+      });
+    });
+  }).catch(function (err) { prog.textContent = ''; showToast("Connection error: " + err.message, true); });
+});
+
+$('hideLeadBtn').addEventListener('click', function () {
+  if (!CURRENT_LEAD) return;
+  var hide = !CURRENT_LEAD.hidden;
+  apiPost({ action: hide ? "adminHideLead" : "adminUnhideLead", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId, product: CURRENT_LEAD.product }).then(function (r) {
+    if (r.success) { showToast(hide ? "Lead hidden" : "Lead unhidden"); closeSheet('leadSheet', 'leadBackdrop'); reloadLeadsOnly(); }
+    else showToast(r.error || "Action failed", true);
+  }).catch(function (err) { showToast("Connection error: " + err.message, true); });
+});
+
+$('deleteLeadBtn').addEventListener('click', function () {
+  if (!CURRENT_LEAD) return;
+  if (!confirm('Permanently delete this lead (' + (CURRENT_LEAD.name || '—') + ')? This cannot be undone.')) return;
+  apiPost({ action: "adminDeleteLead", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId, product: CURRENT_LEAD.product }).then(function (r) {
+    if (r.success) { showToast("Lead deleted"); closeSheet('leadSheet', 'leadBackdrop'); reloadLeadsOnly(); }
+    else showToast(r.error || "Delete failed", true);
+  }).catch(function (err) { showToast("Connection error: " + err.message, true); });
+});
+
+$('saveProcessingBankBtn').addEventListener('click', function () {
+  if (!CURRENT_LEAD) return;
+  var bankName = $('processingBankInput').value.trim();
+  withBusy(this, 'Saving…', function () {
+    return apiPost({ action: "adminSetVlElProcessingBank", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId, product: CURRENT_LEAD.product, bankName: bankName })
+      .then(function (r) { if (r.success) { showToast("Processing bank saved"); CURRENT_LEAD.processingBank = bankName; reloadLeadsOnly(); } else showToast(r.error || "Save failed", true); });
+  }).catch(function (err) { showToast("Connection error: " + err.message, true); });
+});
+/* ================= FOLLOW-UP PANEL ================= */
+var CLAIM_STATUSES = [['Active', 'No update yet'], ['Approved', 'Approved'], ['Rejected', 'Rejected'], ['Disbursed', 'Disbursed']];
+var DSA_STATUSES = ['In Process', 'Approved', 'Disbursed', 'Rejected'];
+
+function escA(s) { return esc(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+function digits10(m) { return String(m || '').replace(/\D/g, '').slice(-10); }
+function agoText(ts) {
+  if (!ts) return '';
+  var m = Math.floor((Date.now() - ts) / 60000);
+  if (m < 60) return Math.max(m, 1) + 'm ago';
+  var h = Math.floor(m / 60); if (h < 24) return h + 'h ago';
+  return Math.floor(h / 24) + 'd ago';
+}
+
+function buildFollowUps(lead) {
+  var out = [];
+  (lead.claims || []).forEach(function (c) {
+    var st = c.claimStatus || 'Active';
+    out.push({
+      type: 'Banker', code: c.bankerCode || '', name: c.bankerName || c.bankerCode || 'Banker',
+      mobile: c.bankerMobile || '', email: c.bankerEmail || '', claimId: c.claimId, status: st, pending: st === 'Active',
+      since: c.claimedAt,
+      detail: 'Claimed from pool' + (c.dsaCodeUsed ? ' · DSA code ' + c.dsaCodeUsed : '') +
+        (st === 'Rejected' && c.rejectionReason ? ' · ' + c.rejectionReason : '') +
+        (st === 'Disbursed' && c.disbursedAmount ? ' · ' + inr(c.disbursedAmount) : '')
+    });
+  });
+  var byDsa = {}, order = [];
+  (lead.pipeline || []).forEach(function (p) {
+    String(p.assignedDsa || '').split(',').forEach(function (n) {
+      n = n.trim(); if (!n) return;
+      if (!byDsa[n]) { byDsa[n] = { rows: [], since: null }; order.push(n); }
+      byDsa[n].rows.push({ lender: p.lender, status: p.status });
+      if (p.lastUpdated && (!byDsa[n].since || p.lastUpdated > byDsa[n].since)) byDsa[n].since = p.lastUpdated;
+    });
+  });
+  order.forEach(function (n) {
+    var info = ACTIVE_DSAS.filter(function (d) { return d.name === n; })[0] || {}, d = byDsa[n];
+    var open = d.rows.filter(function (r) { return r.status === 'In Process'; }).length;
+    out.push({
+      type: 'DSA', code: '', name: n, mobile: info.phone || '', email: info.emails || '', rows: d.rows,
+      status: open ? 'In Process' : 'Updated', pending: open > 0, since: d.since,
+      detail: open + ' of ' + d.rows.length + ' lender(s) still open'
+    });
+  });
+  return out;
+}
+
+function lastFollowUp(f) {
+  var events = LEAD_HISTORY_CACHE[CURRENT_LEAD.leadId] || [], best = null;
+  events.forEach(function (e) {
+    if (!/^Follow-up/.test(e.event || '')) return;
+    var match = f.code ? (e.actorCode === f.code) : (e.actorName === f.name);
+    if (match && (!best || e.timestamp > best.timestamp)) best = e;
+  });
+  return best;
+}
+
+function renderFollowUps() {
+  var el = $('followUpRows');
+  if (!el || !CURRENT_LEAD) return;
+  var list = buildFollowUps(CURRENT_LEAD);
+  CURRENT_LEAD._followUps = list;
+  $('remindPendingBtn').disabled = !list.some(function (f) { return f.pending && f.email; });
+  if (!list.length) { el.innerHTML = '<div class="empty">No bankers or DSAs attached to this lead yet.</div>'; return; }
+
+  el.innerHTML = list.map(function (f, i) {
+    var d = digits10(f.mobile), last = lastFollowUp(f);
+    var msg = 'Hi ' + f.name + ', please share the current status of ' + (CURRENT_LEAD.name || 'the') + ' ' +
+      (CURRENT_LEAD.product || '') + ' lead (' + CURRENT_LEAD.leadId + '). — VastMyWealth';
+    var controls = '';
+    if (f.type === 'Banker') {
+      var opts = CLAIM_STATUSES.slice();
+      if (!opts.some(function (o) { return o[0] === f.status; })) opts.unshift([f.status, f.status]);
+      controls = '<div class="mini-row-top" style="margin-top:8px;"><span class="sub">Status</span><select data-claim="' + i + '">' +
+        opts.map(function (o) { return '<option value="' + escA(o[0]) + '"' + (o[0] === f.status ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select></div>';
+    } else {
+      controls = f.rows.map(function (r) {
+        return '<div class="mini-row-top" style="margin-top:8px;"><span class="sub">' + esc(r.lender) + '</span>' +
+          '<select data-dsa="' + i + '" data-lender="' + escA(r.lender) + '">' +
+          DSA_STATUSES.map(function (s) { return '<option value="' + s + '"' + (s === r.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></div>';
+      }).join('');
+    }
+    return '<div class="mini-row">' +
+      '<div class="mini-row-top"><span class="lbl">' + esc(f.name) + ' <span class="sub">(' + f.type + ')</span></span>' +
+      '<span class="tag ' + (f.pending ? 'warn' : 'ok') + '">' + (f.pending ? 'Pending' : esc(f.status)) + '</span></div>' +
+           '<div class="sub" style="margin-top:4px;">' + esc(f.detail) + (f.since ? ' · since ' + agoText(f.since) : '') +
+        ((f.pending && f.since && Math.floor((Date.now() - f.since) / 86400000) >= 2)
+          ? ' <span class="tag bad">' + Math.floor((Date.now() - f.since) / 86400000) + ' days no update</span>' : '') + '</div>' +
+      '<div class="sub" style="margin-top:2px;">' + (last ? 'Last follow-up: ' + esc(last.event.replace(/^Follow-up /, '')) + ' · ' + agoText(last.timestamp) : 'No follow-up logged yet') + '</div>' +
+      controls +
+      '<div class="icon-row" style="margin-top:10px;align-items:center;flex-wrap:wrap;">' +
+        (d ? '<a class="icon-btn" data-contact="Call" data-i="' + i + '" href="tel:+91' + d + '" title="Call">☎</a>' +
+             '<a class="icon-btn" data-contact="WhatsApp" data-i="' + i + '" href="https://wa.me/91' + d + '?text=' + encodeURIComponent(msg) + '" target="_blank" rel="noopener" title="WhatsApp">✓</a>'
+           : '<span class="sub">No phone on file</span>') +
+        (f.email ? '<button class="btn btn-line btn-sm" data-remind="' + i + '">✉ Email</button>' : '<span class="sub">No email</span>') +
+        '<button class="btn btn-line btn-sm" data-note="' + i + '">📝 Log note</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+function reloadHistory() {
+  if (!CURRENT_LEAD) return Promise.resolve();
+  var id = CURRENT_LEAD.leadId;
+  return apiPost({ action: "adminGetLeadHistory", password: ADMIN_PASSWORD, leadId: id }).then(function (r) {
+    LEAD_HISTORY_CACHE[id] = (r.success ? r.events : []) || [];
+    if (CURRENT_LEAD && CURRENT_LEAD.leadId === id) {
+      renderLeadHistoryBox($('sheetHistoryRows'), LEAD_HISTORY_CACHE[id]);
+      renderFollowUps();
+    }
+  }).catch(function () {});
+}
+
+function refreshLead() {
+  var id = CURRENT_LEAD.leadId;
+  return apiPost({ action: "adminGetAllLeads", password: ADMIN_PASSWORD, includeHidden: currentIncludeHidden() }).then(function (r) {
+    if (!r.success) return;
+    ALL_LEADS = r.leads || [];
+    var fresh = ALL_LEADS.filter(function (l) { return l.leadId === id; })[0];
+    if (fresh) CURRENT_LEAD = fresh;
+    renderLeads(); renderPipelineRows(); renderClaimHistory();
+  }).then(reloadHistory);
+}
+
+function logContact(f, channel, note) {
+  return apiPost({ action: "adminLogContact", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId, product: CURRENT_LEAD.product,
+    customerName: CURRENT_LEAD.name, type: f.type, code: f.code, name: f.name, channel: channel, note: note || '' }).then(reloadHistory);
+}
+
+function sendReminders(targets, btn) {
+  if (!targets.length) { showToast('No one to email', true); return; }
+  var names = targets.map(function (f) { return f.name; }).join(', ');
+  if (!confirm('Email a status-update reminder to: ' + names + '?')) return;
+  withBusy(btn, 'Sending…', function () {
+    return apiPost({ action: "adminSendFollowUp", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId, product: CURRENT_LEAD.product,
+      customerName: CURRENT_LEAD.name, loanAmount: CURRENT_LEAD.loanAmount,
+      targets: targets.map(function (f) { return { type: f.type, code: f.code, name: f.name }; }) })
+    .then(function (r) {
+      var skipped = (r.skipped && r.skipped.length) ? ' · skipped: ' + r.skipped.join(', ') : '';
+      showToast(r.success ? ('Reminder sent to ' + r.sent + skipped) : (r.error || 'Failed') + skipped, !r.success);
+      return reloadHistory();
+    });
+  }).catch(function (err) { showToast(err.message, true); });
+}
+
+$('followUpRows').addEventListener('click', function (e) {
+  var c = e.target.closest('[data-contact]');
+  if (c) { logContact(CURRENT_LEAD._followUps[+c.getAttribute('data-i')], c.getAttribute('data-contact')); return; } // link still opens normally
+  var r = e.target.closest('[data-remind]');
+  if (r) { sendReminders([CURRENT_LEAD._followUps[+r.getAttribute('data-remind')]], r); return; }
+  var n = e.target.closest('[data-note]');
+  if (n) {
+    var f = CURRENT_LEAD._followUps[+n.getAttribute('data-note')];
+    var note = prompt('Note about ' + f.name + ' (e.g. "Spoke to him, will update tomorrow"):');
+    if (note && note.trim()) logContact(f, 'Note', note.trim()).then(function () { showToast('Note saved'); });
+  }
+});
+
+$('followUpRows').addEventListener('change', function (e) {
+  var sel = e.target, f;
+  if (sel.hasAttribute('data-claim')) {
+    f = CURRENT_LEAD._followUps[+sel.getAttribute('data-claim')];
+    var status = sel.value, reason = '', amount = '';
+    if (status === f.status) return;
+    if (!confirm('Set ' + f.name + ' (banker) to "' + status + '"?')) { renderFollowUps(); return; }
+    if (status === 'Rejected') {
+      reason = prompt('Reason for rejection by ' + f.name + ' (required):');
+      if (reason === null || !reason.trim()) { if (reason !== null) showToast('A reason is required', true); renderFollowUps(); return; }
+      reason = reason.trim();
+    }
+    if (status === 'Disbursed') {
+      amount = prompt('Disbursed amount (₹) by ' + f.name + ':', CURRENT_LEAD.loanAmount || '');
+      if (amount === null || !String(amount).replace(/[^0-9.]/g, '')) { if (amount !== null) showToast('Amount is required', true); renderFollowUps(); return; }
+    }
+    sel.disabled = true;
+    apiPost({ action: "adminSetClaimStatus", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId, product: CURRENT_LEAD.product,
+      customerName: CURRENT_LEAD.name, claimId: f.claimId, status: status, reason: reason, amount: amount })
+    .then(function (r) {
+      if (r.success) { showToast(f.name + ' → ' + status); return refreshLead(); }
+      showToast(r.error || 'Update failed', true); renderFollowUps();
+    }).catch(function (err) { showToast('Connection error: ' + err.message, true); renderFollowUps(); });
+    return;
+  }
+  if (sel.hasAttribute('data-dsa')) {
+    f = CURRENT_LEAD._followUps[+sel.getAttribute('data-dsa')];
+    var lender = sel.getAttribute('data-lender'), st = sel.value, note = '';
+    if (!confirm('Set ' + lender + ' (via DSA ' + f.name + ') to "' + st + '"?')) { renderFollowUps(); return; }
+    if (st === 'Rejected') { var rr = prompt('Rejection reason (optional, saved in lead history):'); note = rr ? rr.trim() : ''; }
+    sel.disabled = true;
+    apiPost({ action: "adminSetDsaStatus", password: ADMIN_PASSWORD, leadId: CURRENT_LEAD.leadId, product: CURRENT_LEAD.product,
+      customerName: CURRENT_LEAD.name, dsaName: f.name, lenderName: lender, status: st, note: note })
+    .then(function (r) {
+      if (r.success) { showToast(lender + ' → ' + st); return refreshLead(); }
+      showToast(r.error || 'Update failed', true); renderFollowUps();
+    }).catch(function (err) { showToast('Connection error: ' + err.message, true); renderFollowUps(); });
+  }
+});
+
+$('remindPendingBtn').addEventListener('click', function () {
+  sendReminders(CURRENT_LEAD._followUps.filter(function (f) { return f.pending && f.email; }), this);
+});
+$('awaitingFilter').addEventListener('change', renderLeads);
+/* ================= BANKERS ================= */
+function loadBankers() {
+  $('bankersContainer').innerHTML = '<div class="empty">Loading bankers…</div>';
+  apiPost({ action: "adminGetBankers", password: ADMIN_PASSWORD }).then(function (r) {
+    if (r.success) { ALL_BANKERS = r.bankers || []; renderBankers(); populateBankerPicker(); }
+    else $('bankersContainer').innerHTML = '<div class="error-box">' + esc(r.error || 'Failed to load bankers') + '</div>';
+  }).catch(function (err) { $('bankersContainer').innerHTML = '<div class="error-box">' + esc(err.message) + '</div>'; });
+}
+
+function activeHolderCodes() {
+  var set = {};
+  ALL_LEADS.forEach(function (l) {
+    var inFlight = (l.stage === 'In process' || l.stage === 'Approved' || l.documentStatus === 'Pending');
+    if (!inFlight) return;
+    if (l.partnerCode) set[l.partnerCode] = true;
+    (l.claims || []).forEach(function (c) { if (c.claimStatus === 'Active') set[c.bankerCode] = true; });
+  });
+  (ALL_SUBS || []).forEach(function (sub) { if (sub.status === 'Active') set[sub.holderCode] = true; });
+  return set;
+}
+
+function renderBankers() {
+  var q = ($('bankerSearchBox').value || '').toLowerCase();
+  var showAll = $('showAllBankers') && $('showAllBankers').checked, activeSet = activeHolderCodes();
+  var list = ALL_BANKERS.filter(function (b) {
+    if (!showAll && !q && !activeSet[b.bankerId]) return false;
+    return !q || String(b.name || '').toLowerCase().indexOf(q) !== -1 || String(b.mobile || '').indexOf(q) !== -1;
+  });
+  $('bankersStats').innerHTML = ['<div class="stat-box"><b>' + ALL_BANKERS.length + '</b><span>Registered bankers</span></div>',
+    '<div class="stat-box"><b>' + ALL_BANKERS.filter(function (b) { return b.accountVerified; }).length + '</b><span>Verified</span></div>'].join('');
+  var el = $('bankersContainer');
+  if (!list.length) { el.innerHTML = '<div class="empty">' + (showAll || q ? 'No bankers found.' : 'No bankers with leads in process right now. Tick “Show all bankers” to see everyone.') + '</div>'; return; }
+  el.innerHTML = list.map(function (b) {
+    var codes = (b.codes || []).map(function (c) { return '<span class="tag ' + (c.status === 'Active' ? 'ok' : 'warn') + '">' + esc(c.bankName) + ' · ' + esc(c.loanType) + (c.status !== 'Active' ? ' (pending)' : '') + '</span>'; }).join(' ');
+    return '<div class="card"><div class="card-row" onclick="toggleDetail(this)"><div><div class="name">' + esc(b.name || '—') + (b.accountVerified ? '' : ' <span class="tag warn">unverified</span>') + '</div><div class="sub">' + esc(b.bankName || '—') + ' · ' + esc(b.mobile || '') + '</div></div><span class="caret">▼</span></div>' +
+      '<div class="card-detail"><div class="meta-line">' + (codes || '<span class="sub">No DSA codes yet</span>') + '</div>' +
+      '<div class="icon-row">' + (b.mobile ? '<a class="icon-btn" href="tel:' + esc(b.mobile) + '" title="Call">☎</a>' : '') + (b.email ? '<a class="icon-btn" href="mailto:' + esc(b.email) + '" title="Email">✉</a>' : '') + '</div></div></div>';
+  }).join('');
+}
+
+function populateBankerPicker() {
+  var sel = $('acBanker');
+  sel.innerHTML = '<option value="">Select a banker…</option>' + ALL_BANKERS.map(function (b) { return '<option value="' + esc(b.bankerId) + '">' + esc(b.name || b.bankerId) + ' — ' + esc(b.mobile || '') + '</option>'; }).join('');
+}
+$('bankerSearchBox').addEventListener('input', renderBankers);
+$('showAllBankers').addEventListener('change', renderBankers);
+
+function loadPendingCodes() {
+  $('pendingCodesContainer').innerHTML = '<div class="empty">Loading…</div>';
+  apiPost({ action: "adminGetPendingDsaCodes", password: ADMIN_PASSWORD }).then(function (r) {
+    var pending = (r.status === 'success' ? r.pending : []) || [];
+    var el = $('pendingCodesContainer');
+    if (!pending.length) { el.innerHTML = '<div class="empty">Nothing waiting on approval.</div>'; return; }
+    el.innerHTML = pending.map(function (p) {
+      var codesTxt = (p.codes || []).map(function (c) { return c.bankName + ' · ' + c.loanType + ' · ' + c.vmwCode; }).join(', ');
+      return '<div class="card"><div class="card-row" style="cursor:default;"><div><div class="name">' + esc(p.name || p.bankerId) + '</div><div class="sub">' + esc(p.mobile || '') + ' · ' + esc(codesTxt) + '</div></div>' +
+        '<button class="btn btn-ok btn-sm" data-approve="' + esc(p.bankerId) + '">Approve</button></div></div>';
+    }).join('');
+  }).catch(function () { $('pendingCodesContainer').innerHTML = '<div class="error-box">Could not load pending codes.</div>'; });
+}
+
+$('pendingCodesContainer').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-approve]'); if (!b) return;
+  withBusy(b, 'Approving…', function () {
+    return apiPost({ action: "adminApproveDsaCode", password: ADMIN_PASSWORD, bankerId: b.getAttribute('data-approve') }).then(function (r) {
+      showToast(r.status === 'success' ? 'Approved' : (r.message || 'Failed'), r.status !== 'success');
+      if (r.status === 'success') { loadPendingCodes(); loadBankers(); }
+    });
+  }).catch(function (err) { showToast(err.message, true); });
+});
+
+function loadBlockedBankers() {
+  $('blockedBankersContainer').innerHTML = '<div class="empty">Loading…</div>';
+  apiPost({ action: "adminGetBlockedBankers", password: ADMIN_PASSWORD }).then(function (r) {
+    var list = (r.bankers || []).filter(function (b) { return b.rejectionCount > 0; });
+    var el = $('blockedBankersContainer');
+    if (!list.length) { el.innerHTML = '<div class="empty">No bankers close to the limit right now.</div>'; return; }
+    el.innerHTML = list.map(function (b) {
+      return '<div class="card"><div class="card-row" style="cursor:default;"><div><div class="name">' + esc(b.name || b.bankerId) + '</div><div class="sub">' + esc(b.mobile || '') + ' · ' + b.rejectionCount + ' of ' + b.limit + ' rejections in 30 days</div></div>' +
+        (b.blocked ? '<button class="btn btn-bad btn-sm" data-unblock="' + esc(b.bankerId) + '">Blocked — Unblock</button>' : '<span class="tag warn">' + b.rejectionCount + '/' + b.limit + '</span>') + '</div></div>';
+    }).join('');
+  }).catch(function () { $('blockedBankersContainer').innerHTML = '<div class="error-box">Could not load.</div>'; });
+}
+
+$('blockedBankersContainer').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-unblock]'); if (!b) return;
+  if (!confirm('Unblock this banker and let them claim leads again?')) return;
+  withBusy(b, 'Unblocking…', function () {
+    return apiPost({ action: "adminUnblockBanker", password: ADMIN_PASSWORD, bankerId: b.getAttribute('data-unblock') }).then(function (r) {
+      showToast(r.status === 'success' ? 'Unblocked' : (r.message || 'Failed'), r.status !== 'success');
+      if (r.status === 'success') loadBlockedBankers();
+    });
+  }).catch(function (err) { showToast(err.message, true); });
+});
+
+$('addBankerCodeBtn').addEventListener('click', function () { $('acResult').classList.add('hidden'); openSheet('addCodeSheet', 'addCodeBackdrop'); });
+$('closeAddCodeSheet').addEventListener('click', function () { closeSheet('addCodeSheet', 'addCodeBackdrop'); });
+$('addCodeBackdrop').addEventListener('click', function () { closeSheet('addCodeSheet', 'addCodeBackdrop'); });
+
+$('acSubmitBtn').addEventListener('click', function () {
+  var bankerId = $('acBanker').value, bank = $('acBank').value.trim(), loanType = $('acLoanType').value, code = $('acCode').value.trim();
+  var box = $('acResult'); box.classList.add('hidden');
+  if (!bankerId || !bank || !code) { box.textContent = 'Banker, bank name and code are all required.'; box.classList.remove('hidden'); return; }
+  withBusy(this, 'Adding…', function () {
+    return apiPost({ action: "adminAddDsaCodeForBanker", password: ADMIN_PASSWORD, bankerId: bankerId, bankName: bank, loanType: loanType, vmwCode: code }).then(function (r) {
+      if (r.success) { showToast('DSA code added and active'); closeSheet('addCodeSheet', 'addCodeBackdrop'); $('acBank').value = ''; $('acCode').value = ''; loadBankers(); }
+      else { box.textContent = r.error || 'Could not add the code.'; box.classList.remove('hidden'); }
+    });
+  }).catch(function (err) { box.textContent = err.message; box.classList.remove('hidden'); });
+});
+
+/* ================= PARTNERS ================= */
+function renderPartners() {
+  var q = ($('partnerSearchBox') ? $('partnerSearchBox').value : '').toLowerCase();
+  var container = $('partnersContainer');
+  var showAllP = $('showAllPartners') && $('showAllPartners').checked, activeSetP = activeHolderCodes();
+  var partners = ALL_PARTNERS.filter(function (p) {
+    if (!showAllP && !q && !activeSetP[p.partnerCode]) return false;
+    return !q || String(p.name || '').toLowerCase().indexOf(q) !== -1 || String(p.mobile || '').indexOf(q) !== -1;
+  });
+  if (!partners.length) { container.innerHTML = '<div class="empty">' + (showAllP || q ? 'No partners found.' : 'No partners with leads in process right now. Tick “Show all partners” to see everyone.') + '</div>'; return; }
+  container.innerHTML = partners.map(function (p, i) {
+    var count = p.last30Count || 0;
+    var rankTag = (i === 0 && count > 0) ? ' 🏆' : '';
+    var inactiveTag = p.inactive ? ' <span class="tag warn">inactive 30d+</span>' : '';
+    var cleanMobile = String(p.mobile || '').replace(/\D/g, '');
+    return '<div class="card"><div class="card-row" onclick="toggleDetail(this)"><div><div class="name">' + esc(p.name || '—') + rankTag + inactiveTag + '</div><div class="sub">' + esc(p.mobile || '') + (p.email ? (' · ' + esc(p.email)) : '') + '</div></div><span class="caret">▼</span></div>' +
+      '<div class="card-detail"><div class="meta-line">' + count + ' application' + (count === 1 ? '' : 's') + ' in the last 30 days</div>' +
+      '<div class="icon-row">' + (p.mobile ? '<a class="icon-btn" href="tel:' + esc(p.mobile) + '" title="Call">☎</a>' : '') + (p.email ? '<a class="icon-btn" href="mailto:' + esc(p.email) + '" title="Email">✉</a>' : '') + (cleanMobile ? '<a class="icon-btn" href="https://wa.me/91' + cleanMobile + '" target="_blank" rel="noopener" title="WhatsApp">✓</a>' : '') + (p.chequeLink ? '<a class="icon-btn" href="' + esc(p.chequeLink) + '" target="_blank" rel="noopener" title="Cancelled cheque">📁</a>' : '') + '</div></div></div>';
+  }).join('');
+}
+
+document.addEventListener('input', function (e) { if (e.target && e.target.id === 'partnerSearchBox') renderPartners(); });
+$('showAllPartners').addEventListener('change', renderPartners);
+
+/* ================= DSA FEEDBACK IMPORT ================= */
+var FB = { headers: [], rows: [], saved: null, inited: false, cats: ['Processing', 'Follow-up', 'Rejected', 'Disbursed', 'Ignore'] };
+function fbNorm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+function fbGuessCat(s) {
+  var n = fbNorm(s);
+  if (!n) return 'Ignore';
+  if (/disburs/.test(n)) return 'Disbursed';
+  if (/not elig|^ne$|^ni$|cibil|not income|startup|reject|declin|not interested|negative/.test(n)) return 'Rejected';
+  if (/login|process|approv|sanction|logged|file sent|under/.test(n)) return 'Processing';
+  return 'Follow-up';
+}
+function fbInit() {
+  if (FB.inited) return; FB.inited = true;
+  apiPost({ action: "adminGetDsaList", password: ADMIN_PASSWORD }).then(function (r) {
+    var l = (r && r.dsas) || [];
+    $('fbDsa').innerHTML = '<option value="">— select DSA —</option>' + l.map(function (d) { return '<option value="' + escA(d.name) + '">' + esc(d.name) + '</option>'; }).join('');
+  }).catch(function () { showToast('Could not load DSA list', true); });
+}
+function fbLoadScript(cb) {
+  if (window.XLSX) return cb();
+  var sc = document.createElement('script');
+  sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  sc.onload = cb; sc.onerror = function () { showToast('Could not load the Excel reader. Save the sheet as CSV and try again.', true); };
+  document.head.appendChild(sc);
+}
+$('fbDsa').addEventListener('change', function () { FB.saved = null; if ($('fbFile').files.length) fbReadFile(); });
+$('fbFile').addEventListener('change', fbReadFile);
+function fbReadFile() {
+  var f = $('fbFile').files[0], dsa = $('fbDsa').value;
+  if (!f) return;
+  if (!dsa) { showToast('Pick the DSA first', true); return; }
+  fbLoadScript(function () {
+    var rd = new FileReader();
+    rd.onload = function (ev) {
+      try {
+        var wb = XLSX.read(ev.target.result, { type: 'array' });
+        var ws = wb.Sheets[wb.SheetNames[0]];
+        var all = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
+        var hi = 0; while (hi < all.length && all[hi].filter(function (x) { return String(x).trim(); }).length < 2) hi++;
+        FB.headers = (all[hi] || []).map(function (h, i) { return String(h).trim() || ('Column ' + (i + 1)); });
+        FB.rows = all.slice(hi + 1).filter(function (r) { return r.some(function (x) { return String(x).trim(); }); });
+        apiPost({ action: "adminDsaFbGetMap", password: ADMIN_PASSWORD, dsa: dsa }).then(function (r) { FB.saved = (r && r.config) || null; fbBuildMap(); })
+          .catch(function () { FB.saved = null; fbBuildMap(); });
+      } catch (e) { showToast('Could not read this file: ' + e.message, true); }
+    };
+    rd.readAsArrayBuffer(f);
+  });
+}
+function fbPick(sel, keys, saved) {
+  var opts = '<option value="">— none —</option>' + FB.headers.map(function (h, i) { return '<option value="' + i + '">' + esc(h) + '</option>'; }).join('');
+  $(sel).innerHTML = opts;
+  var pick = -1;
+  if (saved) { pick = FB.headers.indexOf(saved); }
+  if (pick < 0) FB.headers.forEach(function (h, i) { if (pick < 0 && keys.test(fbNorm(h))) pick = i; });
+  $(sel).value = pick >= 0 ? String(pick) : '';
+}
+function fbBuildMap() {
+  var sv = FB.saved || {}, c = sv.columns || {};
+  fbPick('fbColMobile', /mobile|number|phone|contact/, c.mobile);
+  fbPick('fbColStatus', /status|feedback|update/, c.status);
+  fbPick('fbColBank', /bank|lender|login/, c.bank);
+  fbPick('fbColRemark', /remark|comment|note/, c.remark);
+  fbPick('fbColName', /^name|customer/, c.name);
+  fbPick('fbColAmount', /disb.*(amount|amt)|sanction|loan amount|amount/, c.amount);
+  fbPick('fbColDisbDate', /disb.*date|date.*disb|disbursal|disbursement date/, c.disbDate);
+  $('fbMap').classList.remove('hidden');
+  fbStatusTable();
+}
+$('fbColStatus').addEventListener('change', fbStatusTable);
+function fbStatusTable() {
+  var si = $('fbColStatus').value;
+  var box = $('fbStatusTable');
+  if (si === '') { box.innerHTML = '<div class="sub">Pick the status column above.</div>'; return; }
+  var counts = {}, order = [];
+  FB.rows.forEach(function (r) { var v = String(r[Number(si)] || '').trim(); var k = fbNorm(v); if (!(k in counts)) { counts[k] = { label: v, n: 0 }; order.push(k); } counts[k].n++; });
+  var saved = (FB.saved && FB.saved.statusMap) || {};
+  box.innerHTML = order.map(function (k) {
+    var cat = saved[k] || fbGuessCat(counts[k].label);
+    return '<div class="card-row" style="cursor:default;margin-bottom:8px;"><div><div class="name">' + esc(counts[k].label || '(blank)') + '</div><div class="sub">' + counts[k].n + ' rows</div></div>' +
+      '<select data-fbk="' + escA(k) + '" style="padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:#fff;">' +
+      FB.cats.map(function (x) { return '<option' + (x === cat ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div>';
+  }).join('');
+}
+function fbPayload(dry) {
+  var ci = { mobile: $('fbColMobile').value, status: $('fbColStatus').value, bank: $('fbColBank').value, remark: $('fbColRemark').value, name: $('fbColName').value, amount: $('fbColAmount').value, disbDate: $('fbColDisbDate').value };
+  if (ci.mobile === '' || ci.status === '') { showToast('Pick the mobile and status columns', true); return null; }
+  function cell(r, k) { return ci[k] === '' ? '' : String(r[Number(ci[k])] === undefined ? '' : r[Number(ci[k])]).trim(); }
+  var statusMap = {};
+  document.querySelectorAll('[data-fbk]').forEach(function (sel) { statusMap[sel.getAttribute('data-fbk')] = sel.value; });
+  var colNames = {}; Object.keys(ci).forEach(function (k) { colNames[k] = ci[k] === '' ? '' : FB.headers[Number(ci[k])]; });
+  return { action: "adminDsaFbImport", password: ADMIN_PASSWORD, dsa: $('fbDsa').value, dryRun: dry,
+    config: { columns: colNames, statusMap: statusMap },
+    rows: FB.rows.map(function (r) { return { name: cell(r, 'name'), mobile: cell(r, 'mobile'), status: cell(r, 'status'), bank: cell(r, 'bank'), remark: cell(r, 'remark'), amount: cell(r, 'amount'), disbDate: cell(r, 'disbDate') }; }) };
+}
+function fbRun(dry, btn) {
+  var p = fbPayload(dry); if (!p) return;
+  withBusy(btn, dry ? 'Checking…' : 'Importing…', function () {
+    return apiPost(p).then(function (r) {
+      if (!r.success) { $('fbResult').innerHTML = '<div class="error-box">' + esc(r.error || 'Failed') + '</div>'; return; }
+      var unk = Object.keys(r.unknown || {});
+      $('fbResult').innerHTML = '<div class="card"><div class="name">' + (dry ? 'Preview (nothing saved)' : 'Import done') + '</div>' +
+        '<div class="stats-row" style="margin-top:10px;">' +
+        '<div class="stat-box"><b>' + r.total + '</b><span>Rows</span></div><div class="stat-box"><b>' + r.matched + '</b><span>Matched</span></div>' +
+        '<div class="stat-box"><b>' + r.updated + '</b><span>' + (dry ? 'Will update' : 'Updated') + '</span></div><div class="stat-box"><b>' + r.rejected + '</b><span>Rejected</span></div>' +
+        '<div class="stat-box"><b>' + r.unchanged + '</b><span>Unchanged</span></div><div class="stat-box"><b>' + ((r.unmatched || []).length) + '</b><span>Not matched</span></div></div>' +
+        (r.noMobile ? '<div class="sub">' + r.noMobile + ' rows have no mobile number.</div>' : '') +
+        (unk.length ? '<div class="error-box" style="margin-top:8px;">Status not mapped (skipped): ' + unk.map(esc).join(', ') + '</div>' : '') +
+        ((r.unmatched || []).length ? '<div class="sub" style="margin-top:10px;"><b>Not found in our leads:</b><br>' + r.unmatched.map(function (u) { return esc((u.name || '—') + ' · ' + (u.mobile || 'no mobile') + ' · ' + u.status); }).join('<br>') + '</div>' : '') +
+        '</div>';
+      if (!dry) { showToast('Imported'); FB.saved = p.config; }
+    });
+  }).catch(function (e) { showToast(e.message, true); });
+}
+$('fbPreview').addEventListener('click', function () { fbRun(true, $('fbPreview')); });
+$('fbImport').addEventListener('click', function () {
+  if (!confirm('Import this sheet now? Rows marked Rejected will be rejected in the admin.')) return;
+  fbRun(false, $('fbImport'));
+});
+
+/* ================= TEAM (EMPLOYEE LOGINS) ================= */
+function loadTeam() {
+  $('teamContainer').innerHTML = '<div class="empty">Loading…</div>';
+  apiPost({ action: "adminListTeamUsers", password: ADMIN_PASSWORD }).then(function (r) {
+    if (!r.success) { $('teamContainer').innerHTML = '<div class="error-box">' + esc(r.error || 'Failed to load') + '</div>'; return; }
+    $('teamLinkNote').textContent = 'Employee login page: ' + (r.loginUrl || '');
+    var users = r.users || [];
+    if (!users.length) { $('teamContainer').innerHTML = '<div class="empty">No employees yet. Tap “Add employee”.</div>'; return; }
+    $('teamContainer').innerHTML = users.map(function (u) {
+      var locked = u.status === 'Locked';
+      return '<div class="card"><div class="card-row" style="cursor:default;"><div>' +
+        '<div class="name">' + esc(u.name) + ' ' + (locked ? '<span class="tag bad">Locked</span>' : '<span class="tag ok">Active</span>') + '</div>' +
+        '<div class="sub">' + esc(u.mobile) + ' · ' + esc(u.email) + '</div>' +
+        '<div class="sub">' + (u.lastLogin ? 'Last login ' + fmtDate(u.lastLogin) : 'Never logged in') + '</div></div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">' +
+        (locked ? '<button class="btn btn-ok btn-sm" data-tunlock="' + escA(u.mobile) + '">Unlock</button>' : '') +
+        '<button class="btn btn-line btn-sm" data-treset="' + escA(u.mobile) + '">Reset PIN</button>' +
+        '<button class="btn btn-bad btn-sm" data-tdel="' + escA(u.mobile) + '" data-tname="' + escA(u.name) + '">Delete</button>' +
+        '</div></div></div>';
+    }).join('');
+  }).catch(function (err) { $('teamContainer').innerHTML = '<div class="error-box">' + esc(err.message) + '</div>'; });
+}
+$('teamContainer').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-tdel],[data-treset],[data-tunlock]'); if (!b) return;
+  var act, mob, msg = null;
+  if (b.hasAttribute('data-tdel')) { act = 'adminDeleteTeamUser'; mob = b.getAttribute('data-tdel'); msg = 'Delete ' + b.getAttribute('data-tname') + '? Their access stops immediately.'; }
+  else if (b.hasAttribute('data-treset')) { act = 'adminResetTeamPin'; mob = b.getAttribute('data-treset'); msg = 'Generate a new PIN and email it to this employee?'; }
+  else { act = 'adminUnlockTeamUser'; mob = b.getAttribute('data-tunlock'); }
+  if (msg && !confirm(msg)) return;
+  withBusy(b, 'Please wait…', function () {
+    return apiPost({ action: act, password: ADMIN_PASSWORD, userMobile: mob }).then(function (r) {
+      showToast(r.success ? (r.message || 'Done') : (r.error || 'Failed'), !r.success);
+      if (r.success) loadTeam();
+    });
+  }).catch(function (err) { showToast(err.message, true); });
+});
+$('addTeamBtn').addEventListener('click', function () { $('teamResult').classList.add('hidden'); openSheet('addTeamSheet', 'addTeamBackdrop'); });
+$('closeAddTeamSheet').addEventListener('click', function () { closeSheet('addTeamSheet', 'addTeamBackdrop'); });
+$('addTeamBackdrop').addEventListener('click', function () { closeSheet('addTeamSheet', 'addTeamBackdrop'); });
+$('teamSubmitBtn').addEventListener('click', function () {
+  var box = $('teamResult'); box.classList.add('hidden');
+  withBusy($('teamSubmitBtn'), 'Creating…', function () {
+    return apiPost({ action: "adminAddTeamUser", password: ADMIN_PASSWORD, name: $('teamName').value.trim(), userMobile: $('teamMobile').value.trim(), email: $('teamEmail').value.trim() }).then(function (r) {
+      if (!r.success) { box.textContent = r.error || 'Failed'; box.classList.remove('hidden'); return; }
+      showToast(r.message || 'Added');
+      $('teamName').value = ''; $('teamMobile').value = ''; $('teamEmail').value = '';
+      closeSheet('addTeamSheet', 'addTeamBackdrop'); loadTeam();
+    });
+  }).catch(function (err) { box.textContent = err.message; box.classList.remove('hidden'); });
+});
+
+
+/* ================= ORGANISATION ================= */
+var ORG = { seats: [], loaded: false, sec: 'orgSeats' };
+function orgCall(action, extra) { var p = { action: action, password: ADMIN_PASSWORD }; Object.keys(extra || {}).forEach(function (k) { p[k] = extra[k]; }); return apiPost(p); }
+function orgInr(n) { var v = Number(n) || 0; return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
+function orgInit() { if (!ORG.loaded) { ORG.loaded = true; orgShow('orgSeats'); } }
+function orgShow(id) {
+  ORG.sec = id;
+  document.querySelectorAll('.org-sec').forEach(function (e) { e.classList.toggle('hidden', e.id !== id); });
+  document.querySelectorAll('[data-orgsec]').forEach(function (b) { b.className = 'btn btn-sm ' + (b.dataset.orgsec === id ? 'btn-gold' : 'btn-line'); });
+  if (id === 'orgSeats' || id === 'orgAppr' || id === 'orgMis') orgLoadSeats();
+  if (id === 'orgComm') orgLoadLedger();
+  if (id === 'orgStmt') { if (!$('osMonth').value) $('osMonth').value = new Date().toISOString().slice(0, 7); orgLoadStmts(); }
+}
+document.querySelectorAll('[data-orgsec]').forEach(function (b) { b.addEventListener('click', function () { orgShow(b.dataset.orgsec); }); });
+
+function orgLoadSeats() {
+  return orgCall('adminOrgListSeats').then(function (r) {
+    if (!r.success) { $('orgSeatList').innerHTML = '<div class="error-box">' + esc(r.error || 'Failed') + '</div>'; return; }
+    ORG.seats = r.seats || []; ORG.moves = r.moves || [];
+    $('orgLoginNote').textContent = 'Organisation app link: ' + (r.loginUrl || '');
+    orgRenderSeats(); orgRenderAppr(); orgFillSelects();
+  }).catch(function (e) { $('orgSeatList').innerHTML = '<div class="error-box">' + esc(e.message) + '</div>'; });
+}
+function orgDepth(code) { var d = 0, c = code, seen = {}; for (;;) { var s = ORG.seats.filter(function (x) { return x.code === c; })[0]; if (!s || !s.parent || seen[c]) break; seen[c] = 1; d++; c = s.parent; } return d; }
+function orgOrdered() {
+  var kids = {}; ORG.seats.forEach(function (s) { (kids[s.parent || ''] = kids[s.parent || ''] || []).push(s); });
+  var out = []; (function walk(code) { (kids[code] || []).forEach(function (s) { out.push(s); walk(s.code); }); })('');
+  return out;
+}
+function orgRenderSeats() {
+  var list = orgOrdered();
+  $('orgSeatList').innerHTML = list.map(function (s) {
+    var d = orgDepth(s.code), vac = s.status === 'Vacant';
+    var tag = s.status === 'Active' ? '<span class="tag ok">Active</span>' : vac ? '<span class="tag warn">Vacant</span>' : '<span class="tag bad">' + esc(s.status) + '</span>';
+    var share = s.shareStatus === 'Approved' ? 'Share ' + s.share + '% (approved)' : s.shareStatus === 'Recommended' ? 'Recommended ' + s.recommended + '% (awaiting approval)' : 'No share set';
+    return '<div class="card" style="margin-left:' + Math.min(d, 5) * 10 + 'px;"><div class="card-row" style="cursor:default;"><div>' +
+      '<div class="name">' + esc(s.code) + ' · ' + esc(s.role) + (s.territory ? ' · ' + esc(s.territory) : '') + ' ' + tag + (s.locked ? ' <span class="tag bad">Locked</span>' : '') + '</div>' +
+      '<div class="sub">' + (vac ? 'No one assigned' : esc(s.name) + ' · ' + esc(s.mobile) + ' · ' + esc(s.email)) + '</div>' +
+      '<div class="sub">' + esc(s.zone) + ' · ' + esc(share) + ' · PAN ' + esc(s.pan || 'No') + ' · GST ' + esc(s.gst || 'No') + (s.alias ? ' · ' + esc(s.alias) : '') + '</div></div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">' +
+      (s.code !== 'HQ' ? '<button class="btn btn-line btn-sm" data-oedit="' + escA(s.code) + '">' + (vac ? 'Assign person' : 'Edit') + '</button>' : '') +
+      (!vac && s.code !== 'HQ' ? '<button class="btn btn-line btn-sm" data-oreset="' + escA(s.code) + '">Reset PIN</button>' : '') +
+      (s.locked ? '<button class="btn btn-ok btn-sm" data-ounlock="' + escA(s.code) + '">Unlock</button>' : '') +
+      (!vac && s.code !== 'HQ' ? '<button class="btn btn-bad btn-sm" data-ovac="' + escA(s.code) + '">Person left</button>' : '') +
+      '</div></div></div>';
+  }).join('') || '<div class="empty">No seats.</div>';
+}
+function orgFillSelects() {
+  var opts = orgOrdered().map(function (s) { return '<option value="' + escA(s.code) + '">' + esc(s.code + ' — ' + (s.name || 'vacant') + ' (' + s.role + ')') + '</option>'; }).join('');
+  var cur = $('orgfParent').value; $('orgfParent').innerHTML = opts; if (cur) $('orgfParent').value = cur;
+  var sc = $('omScope'), cv = sc.value;
+  sc.innerHTML = '<option value="">Whole company</option>' + orgOrdered().filter(function (s) { return s.code !== 'HQ'; }).map(function (s) { return '<option value="' + escA(s.code) + '">' + esc(s.code + ' — ' + (s.name || 'vacant')) + '</option>'; }).join('');
+  if (cv) sc.value = cv;
+}
+function orgOpenForm(code) {
+  var s = code ? ORG.seats.filter(function (x) { return x.code === code; })[0] : null;
+  $('orgfErr').classList.add('hidden');
+  $('orgFormTitle').textContent = s ? (s.status === 'Vacant' ? 'Assign a person to ' + s.code : 'Edit ' + s.code) : 'New seat';
+  $('orgfCode').value = s ? s.code : '';
+  $('orgfRole').value = s ? s.role : 'Regional'; $('orgfRole').disabled = !!s;
+  $('orgfParent').value = s ? s.parent : 'W-Z'; $('orgfParent').disabled = !!s;
+  $('orgfTerr').value = s ? s.territory : ''; $('orgfName').value = s ? s.name : ''; $('orgfMobile').value = s ? s.mobile : ''; $('orgfEmail').value = s ? s.email : '';
+  $('orgfPan').value = s && s.pan === 'Yes' ? 'Yes' : 'No'; $('orgfGst').value = s && s.gst === 'Yes' ? 'Yes' : 'No';
+  $('orgfAlias').value = s ? s.alias : ''; $('orgfPcode').value = s ? s.partnerCode : ''; $('orgfNotes').value = s ? s.notes : '';
+  $('orgForm').classList.remove('hidden'); $('orgForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+$('orgNewSeat').addEventListener('click', function () { orgOpenForm(''); });
+$('orgfCancel').addEventListener('click', function () { $('orgForm').classList.add('hidden'); });
+$('orgfSave').addEventListener('click', function () {
+  var code = $('orgfCode').value.trim();
+  var p = { code: code, role: $('orgfRole').value, parent: $('orgfParent').value, territory: $('orgfTerr').value.trim(), name: $('orgfName').value.trim(), seatMobile: $('orgfMobile').value.trim(),
+    email: $('orgfEmail').value.trim(), pan: $('orgfPan').value, gst: $('orgfGst').value, alias: $('orgfAlias').value.trim(), partnerCode: $('orgfPcode').value.trim(), notes: $('orgfNotes').value.trim() };
+  withBusy($('orgfSave'), 'Saving…', function () {
+    return orgCall('adminOrgSaveSeat', p).then(function (r) {
+      if (!r.success) { $('orgfErr').textContent = r.error || 'Failed'; $('orgfErr').classList.remove('hidden'); return; }
+      showToast(r.message || 'Saved'); $('orgForm').classList.add('hidden'); orgLoadSeats();
+    });
+  }).catch(function (e) { $('orgfErr').textContent = e.message; $('orgfErr').classList.remove('hidden'); });
+});
+$('orgSeatList').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-oedit],[data-oreset],[data-ounlock],[data-ovac]'); if (!b) return;
+  if (b.hasAttribute('data-oedit')) { orgOpenForm(b.getAttribute('data-oedit')); return; }
+  var act, code, msg = null;
+  if (b.hasAttribute('data-oreset')) { act = 'adminOrgResetPin'; code = b.getAttribute('data-oreset'); msg = 'Generate a new PIN and email it to this seat holder?'; }
+  else if (b.hasAttribute('data-ounlock')) { act = 'adminOrgUnlock'; code = b.getAttribute('data-ounlock'); }
+  else { act = 'adminOrgVacate'; code = b.getAttribute('data-ovac'); msg = 'Remove the person from ' + code + '? The seat, its team and history stay; access stops now.'; }
+  if (msg && !confirm(msg)) return;
+  withBusy(b, 'Please wait…', function () { return orgCall(act, { code: code }).then(function (r) { showToast(r.success ? (r.message || 'Done') : (r.error || 'Failed'), !r.success); if (r.success) orgLoadSeats(); }); }).catch(function (er) { showToast(er.message, true); });
+});
+
+function orgRenderAppr() {
+  $('orgMoves').innerHTML = (ORG.moves || []).map(function (m) {
+    return '<div class="card"><div class="name">' + esc(m.seat) + ': ' + esc(m.from) + ' → ' + esc(m.to) + '</div><div class="sub">Requested by ' + esc(m.by) + (m.on ? ' · ' + fmtDate(m.on) : '') + (m.note ? ' · ' + esc(m.note) : '') + '</div>' +
+      '<div style="display:flex;gap:8px;margin-top:8px;"><button class="btn btn-ok btn-sm" data-omv="' + escA(m.id) + '" data-ok="1">Approve</button><button class="btn btn-bad btn-sm" data-omv="' + escA(m.id) + '" data-ok="0">Decline</button></div></div>';
+  }).join('') || '<div class="sub">No pending move requests.</div>';
+  var rec = ORG.seats.filter(function (s) { return s.code !== 'HQ' && (s.shareStatus === 'Recommended' || s.shareStatus === 'Approved' || s.status === 'Active'); });
+  $('orgShares').innerHTML = rec.map(function (s) {
+    var pre = s.shareStatus === 'Recommended' ? s.recommended : s.share;
+    return '<div class="card"><div class="card-row" style="cursor:default;"><div><div class="name">' + esc(s.code) + ' · ' + esc(s.name || 'vacant') + '</div><div class="sub">' + esc(s.role) + ' · ' +
+      (s.shareStatus === 'Approved' ? 'approved ' + s.share + '%' : s.shareStatus === 'Recommended' ? 'recommended ' + s.recommended + '%' : 'no share yet') + '</div></div>' +
+      '<div style="display:flex;gap:6px;align-items:center;"><input style="width:70px;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:#fff;" inputmode="decimal" value="' + escA(pre || '') + '" data-ospct="' + escA(s.code) + '">' +
+      '<button class="btn btn-gold btn-sm" data-osapp="' + escA(s.code) + '">Approve %</button></div></div></div>';
+  }).join('');
+}
+$('orgMoves').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-omv]'); if (!b) return;
+  withBusy(b, 'Please wait…', function () { return orgCall('adminOrgDecideMove', { requestId: b.getAttribute('data-omv'), approve: b.getAttribute('data-ok') === '1' }).then(function (r) { showToast(r.success ? (r.message || 'Done') : (r.error || 'Failed'), !r.success); if (r.success) orgLoadSeats(); }); }).catch(function (er) { showToast(er.message, true); });
+});
+$('orgShares').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-osapp]'); if (!b) return;
+  var code = b.getAttribute('data-osapp'), inp = document.querySelector('[data-ospct="' + code + '"]');
+  withBusy(b, 'Please wait…', function () { return orgCall('adminOrgApproveShare', { code: code, percent: inp.value }).then(function (r) { showToast(r.success ? (r.message || 'Approved') : (r.error || 'Failed'), !r.success); if (r.success) orgLoadSeats(); }); }).catch(function (er) { showToast(er.message, true); });
+});
+
+function orgLoadLedger() {
+  orgCall('adminOrgLedger').then(function (r) {
+    if (!r.success) { $('orgLedger').innerHTML = '<div class="error-box">' + esc(r.error || 'Failed') + '</div>'; return; }
+    var rows = (r.entries || []).slice(0, 100);
+    $('orgLedger').innerHTML = rows.length ? rows.map(function (x) {
+      return '<div class="card"><div class="card-row" style="cursor:default;"><div><div class="name">' + esc(x['Type']) + ' · ' + esc(x['Lead ID']) + ' · ' + esc(x['Seat Code']) + ' ' + esc(x['Payee']) + '</div>' +
+        '<div class="sub">Base ' + orgInr(x['Base']) + ' · GST ' + orgInr(x['GST']) + ' · TDS ' + orgInr(x['TDS']) + ' · <b>Net ' + orgInr(x['Net']) + '</b></div>' +
+        '<div class="sub">' + esc(x['Status']) + (x['Statement ID'] ? ' · ' + esc(x['Statement ID']) : '') + '</div></div></div></div>';
+    }).join('') : '<div class="sub">No entries yet.</div>';
+  }).catch(function (e) { $('orgLedger').innerHTML = '<div class="error-box">' + esc(e.message) + '</div>'; });
+}
+$('ocSave').addEventListener('click', function () {
+  withBusy($('ocSave'), 'Recording…', function () {
+    return orgCall('adminOrgRecordCommission', { leadId: $('ocLead').value.trim(), commission: $('ocAmt').value.trim(), receivedOn: $('ocDate').value.trim(), channel: $('ocChan').value.trim(), note: $('ocNote').value.trim() }).then(function (r) {
+      if (!r.success) { $('ocRes').innerHTML = '<span style="color:var(--bad)">' + esc(r.error || 'Failed') + '</span>'; return; }
+      $('ocRes').innerHTML = 'Recorded ' + orgInr(r.commission) + '. Paid out to seats: ' + orgInr(r.distributed) + ' · kept by the company: ' + orgInr(r.keptByHq) +
+        (r.entries || []).map(function (x) { return '<br>' + esc(x.seat) + ' ' + esc(x.payee) + ' (' + x.share + '%): base ' + orgInr(x.base) + ', GST ' + orgInr(x.gst) + ', TDS ' + orgInr(x.tds) + ', net ' + orgInr(x.net); }).join('') +
+        ((r.notes || []).length ? '<br><i>' + esc(r.notes.join('; ')) + '</i>' : '');
+      orgLoadLedger();
+    });
+  }).catch(function (e) { $('ocRes').textContent = e.message; });
+});
+$('cbSave').addEventListener('click', function () {
+  if (!confirm('Record this clawback? It will be deducted from the same seats in their next statement.')) return;
+  withBusy($('cbSave'), 'Recording…', function () {
+    return orgCall('adminOrgClawback', { leadId: $('cbLead').value.trim(), amount: $('cbAmt').value.trim(), note: $('cbNote').value.trim() }).then(function (r) {
+      $('cbRes').innerHTML = r.success ? 'Clawback recorded on ' + r.entries + ' seat(s). Still recoverable on this lead: ' + orgInr(r.recoverable) : '<span style="color:var(--bad)">' + esc(r.error || 'Failed') + '</span>';
+      if (r.success) orgLoadLedger();
+    });
+  }).catch(function (e) { $('cbRes').textContent = e.message; });
+});
+
+function orgStmtRun(dry, btn) {
+  withBusy(btn, dry ? 'Checking…' : 'Creating…', function () {
+    return orgCall('adminOrgBuildStatement', { month: $('osMonth').value.trim(), dryRun: dry }).then(function (r) {
+      if (!r.success) { $('osRes').innerHTML = '<div class="error-box">' + esc(r.error || 'Failed') + '</div>'; return; }
+      $('osRes').innerHTML = '<div class="sub"><b>' + (r.dryRun ? 'Preview (nothing saved)' : 'Created') + '</b></div>' +
+        (r.statements || []).map(function (s) { return '<div class="sub">' + esc(s.seat) + ' ' + esc(s.payee) + ' · ' + s.entries + ' entries · base ' + orgInr(s.base) + ' · GST ' + orgInr(s.gst) + ' · TDS ' + orgInr(s.tds) + ' · <b>net ' + orgInr(s.net) + '</b></div>'; }).join('') +
+        ((r.carried || []).length ? '<div class="sub" style="margin-top:6px;">Carried forward: ' + r.carried.map(function (c) { return esc(c.seat) + ' (' + esc(c.reason) + ')'; }).join('; ') + '</div>' : '') +
+        (!(r.statements || []).length ? '<div class="sub">Nothing to pay this time.</div>' : '');
+      if (!dry) orgLoadStmts();
+    });
+  }).catch(function (e) { $('osRes').innerHTML = '<div class="error-box">' + esc(e.message) + '</div>'; });
+}
+$('osPreview').addEventListener('click', function () { orgStmtRun(true, $('osPreview')); });
+$('osCreate').addEventListener('click', function () { if (confirm('Create the statements for ' + $('osMonth').value + '? Entries are locked into them.')) orgStmtRun(false, $('osCreate')); });
+function orgLoadStmts() {
+  orgCall('adminOrgListStatements').then(function (r) {
+    if (!r.success) { $('orgStmtList').innerHTML = '<div class="error-box">' + esc(r.error || 'Failed') + '</div>'; return; }
+    $('orgStmtList').innerHTML = (r.statements || []).map(function (s) {
+      var paid = s['Status'] === 'Paid';
+      return '<div class="card"><div class="card-row" style="cursor:default;"><div><div class="name">' + esc(s['Statement ID']) + ' ' + (paid ? '<span class="tag ok">Paid</span>' : '<span class="tag warn">Due</span>') + '</div>' +
+        '<div class="sub">' + esc(s['Payee']) + ' · base ' + orgInr(s['Base']) + ' · GST ' + orgInr(s['GST']) + ' · TDS ' + orgInr(s['TDS']) + ' · <b>net ' + orgInr(s['Net Payable']) + '</b></div>' +
+        '<div class="sub">' + (s['GST Registered'] === 'Yes' ? 'GST invoice needed from payee · ' : '') + (paid ? 'Paid ' + fmtDate(s['Paid On']) + (s['Paid Ref'] ? ' · ref ' + esc(s['Paid Ref']) : '') : '') + '</div></div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;"><button class="btn btn-line btn-sm" data-osem="' + escA(s['Statement ID']) + '">Email statement</button>' +
+        (paid ? '' : '<button class="btn btn-ok btn-sm" data-ospaid="' + escA(s['Statement ID']) + '">Mark paid</button>') + '</div></div></div>';
+    }).join('') || '<div class="sub">No statements yet.</div>';
+  }).catch(function (e) { $('orgStmtList').innerHTML = '<div class="error-box">' + esc(e.message) + '</div>'; });
+}
+$('orgStmtList').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-osem],[data-ospaid]'); if (!b) return;
+  if (b.hasAttribute('data-osem')) {
+    withBusy(b, 'Sending…', function () { return orgCall('adminOrgEmailStatement', { statementId: b.getAttribute('data-osem') }).then(function (r) { showToast(r.success ? 'Emailed' : (r.error || 'Failed'), !r.success); }); }).catch(function (er) { showToast(er.message, true); });
+    return;
+  }
+  var ref = prompt('Payment reference (UTR / cheque no.):'); if (ref === null) return;
+  withBusy(b, 'Saving…', function () { return orgCall('adminOrgMarkPaid', { statementId: b.getAttribute('data-ospaid'), reference: ref }).then(function (r) { showToast(r.success ? 'Marked paid' : (r.error || 'Failed'), !r.success); if (r.success) orgLoadStmts(); }); }).catch(function (er) { showToast(er.message, true); });
+});
+
+function orgMisRender(r) {
+  var t = r.totals, pct = function (a, b) { return b ? Math.round(a * 100 / b) + '%' : '—'; };
+  function box(v, l) { return '<div class="stat-box"><b>' + v + '</b><span>' + l + '</span></div>'; }
+  var h = '<div class="stats-row">' + box(t.leads, 'Leads') + box(t.needsVerification + t.pending, 'Waiting on documents') + box(t.sent, 'Sent to DSA') + box(t.disbursed, 'Disbursed') + box(orgInr(t.disbursedAmount), 'Disbursed amount') + '</div>' +
+    '<div class="stats-row" style="margin-top:8px;">' + box(pct(t.sent + t.disbursed, t.leads), 'Reached DSA') + box(pct(t.disbursed, t.sent + t.disbursed), 'Disbursed of sent') + box(t.stalePending, 'Pending over 3 days') + box(t.hold, 'On hold') + box(t.dsaRejected + t.rejected, 'Rejected') + '</div>';
+  h += '<div class="section-label" style="margin-top:12px;">By team</div>' + (r.children || []).map(function (c) {
+    return '<div class="card"><div class="name">' + esc(c.code) + ' ' + esc(c.name || '') + '</div><div class="sub">' + c.leads + ' leads · ' + c.pending + ' waiting on documents · ' + c.sent + ' sent · ' + c.disbursed + ' disbursed (' + orgInr(c.amount) + ')</div></div>';
+  }).join('');
+  h += '<div class="section-label" style="margin-top:12px;">By product</div>' + Object.keys(r.byProduct || {}).map(function (k) { var p = r.byProduct[k]; return '<div class="sub">' + esc(k) + ': ' + p.leads + ' leads · ' + p.sent + ' sent · ' + p.disbursed + ' disbursed (' + orgInr(p.amount) + ')</div>'; }).join('');
+  h += '<div class="section-label" style="margin-top:12px;">By month</div>' + (r.byMonth || []).map(function (m) { return '<div class="sub">' + esc(m.month) + ': ' + m.leads + ' leads · ' + m.disbursed + ' disbursed (' + orgInr(m.amount) + ')</div>'; }).join('');
+  h += '<div class="section-label" style="margin-top:12px;">Banks with disbursals</div>' + ((r.banks || []).map(function (b) { return '<div class="sub">' + esc(b.bank) + ': ' + b.n + ' · ' + orgInr(b.amount) + '</div>'; }).join('') || '<div class="sub">None yet.</div>');
+  h += '<div class="section-label" style="margin-top:12px;">Why leads are on hold</div>' + ((r.holdReasons || []).map(function (b) { return '<div class="sub">' + esc(b.reason) + ': ' + b.n + '</div>'; }).join('') || '<div class="sub">None.</div>');
+  h += '<div class="section-label" style="margin-top:12px;">Seats filled</div>' + Object.keys(r.seatFill || {}).map(function (k) { var f = r.seatFill[k]; return '<div class="sub">' + esc(k) + ': ' + f.active + ' active · ' + f.vacant + ' vacant' + (f.inactive ? ' · ' + f.inactive + ' inactive' : '') + '</div>'; }).join('');
+  return h;
+}
+$('omLoad').addEventListener('click', function () {
+  withBusy($('omLoad'), 'Loading…', function () {
+    return orgCall('adminOrgMis', { scope: $('omScope').value, months: $('omMonths').value }).then(function (r) { $('omOut').innerHTML = r.success ? orgMisRender(r) : '<div class="error-box">' + esc(r.error || 'Failed') + '</div>'; });
+  }).catch(function (e) { $('omOut').innerHTML = '<div class="error-box">' + esc(e.message) + '</div>'; });
+});
+
+/* ================= BIZ TOOL SUBSCRIPTIONS ================= */
+function loadSubscriptions() {
+  $('subsContainer').innerHTML = '<div class="empty">Loading…</div>';
+  apiPost({ action: "adminListSubscriptions", password: ADMIN_PASSWORD }).then(function (r) {
+    if (!r.success) { $('subsContainer').innerHTML = '<div class="error-box">' + esc(r.error || 'Failed to load') + '</div>'; return; }
+    ALL_SUBS = r.subscriptions || [];
+    renderSubscriptions();
+    renderBankers(); renderPartners();
+  }).catch(function (err) { $('subsContainer').innerHTML = '<div class="error-box">' + esc(err.message) + '</div>'; });
+}
+
+function subStatusTag(s) {
+  return s === 'Active' ? '<span class="tag ok">Active</span>' : s === 'Pending' ? '<span class="tag warn">Pending payment</span>' : s === 'Cancelled' ? '<span class="tag bad">Cancelled</span>' : '<span class="tag">Expired</span>';
+}
+
+function renderSubscriptions() {
+  var active = ALL_SUBS.filter(function (s) { return s.status === 'Active'; }).length;
+  var pending = ALL_SUBS.filter(function (s) { return s.status === 'Pending'; }).length;
+  $('subsStats').innerHTML = '<div class="stat-box"><b>' + ALL_SUBS.length + '</b><span>Total</span></div>' +
+    '<div class="stat-box"><b>' + active + '</b><span>Active</span></div>' + '<div class="stat-box"><b>' + pending + '</b><span>Pending payment</span></div>';
+  var el = $('subsContainer');
+  if (!ALL_SUBS.length) { el.innerHTML = '<div class="empty">No subscriptions yet.</div>'; return; }
+  el.innerHTML = ALL_SUBS.map(function (s) {
+    return '<div class="card"><div class="card-row" style="cursor:default;"><div>' +
+      '<div class="name">' + esc(s.holderName || s.holderCode) + ' <span class="sub">(' + esc(s.holderType) + ')</span></div>' +
+      '<div class="sub">' + esc(s.plan) + ' · ' + esc(s.states || '') + (s.city ? (' · ' + esc(s.city)) : '') + (s.bankName ? (' · ' + esc(s.bankName)) : '') + '</div>' +
+      '<div class="sub">₹' + esc(s.amountPaid) + ' · ' + esc(s.source) + (s.endDate ? (' · ends ' + fmtDate(s.endDate)) : '') + '</div>' +
+      (s.holderCode ? '<div class="linkbox mt8" style="max-width:340px;"><span>' + esc(refLinkFor(s.holderCode)) + '</span><button class="btn btn-gold btn-sm" data-copylink="' + esc(s.holderCode) + '">Copy</button></div>' : '') +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">' + subStatusTag(s.status) +
+      (s.status === 'Active' || s.status === 'Pending' ? '<button class="btn btn-bad btn-sm" data-cancel="' + esc(s.subscriptionId) + '">Cancel</button>' : '') +
+      '</div></div></div>';
+  }).join('');
+}
+
+$('subsContainer').addEventListener('click', function (e) {
+  var copyBtn = e.target.closest('[data-copylink]');
+  if (copyBtn) { copyText(refLinkFor(copyBtn.getAttribute('data-copylink'))).then(function () { showToast('Link copied'); }).catch(function () { showToast('Could not copy', true); }); return; }
+  var b = e.target.closest('[data-cancel]'); if (!b) return;
+  if (!confirm('Cancel this subscription now?')) return;
+  withBusy(b, 'Cancelling…', function () {
+    return apiPost({ action: "adminCancelSubscription", password: ADMIN_PASSWORD, subscriptionId: b.getAttribute('data-cancel') }).then(function (r) {
+      showToast(r.success ? 'Cancelled' : (r.error || 'Failed'), !r.success);
+      if (r.success) loadSubscriptions();
+    });
+  }).catch(function (err) { showToast(err.message, true); });
+});
+
+$('addSubBtn').addEventListener('click', function () { $('subResult').classList.add('hidden'); openSheet('addSubSheet', 'addSubBackdrop'); });
+$('closeAddSubSheet').addEventListener('click', function () { closeSheet('addSubSheet', 'addSubBackdrop'); });
+$('addSubBackdrop').addEventListener('click', function () { closeSheet('addSubSheet', 'addSubBackdrop'); });
+
+$('subSubmitBtn').addEventListener('click', function () {
+  var box = $('subResult'); box.classList.add('hidden');
+  var states = $('subStates').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+  var holderCode = $('subHolderCode').value.trim();
+  if (!holderCode || !states.length) { box.textContent = 'Holder code and at least one state are required.'; box.classList.remove('hidden'); return; }
+  withBusy(this, 'Creating…', function () {
+    return apiPost({
+      action: "adminCreateSubscription", password: ADMIN_PASSWORD,
+      holderType: $('subHolderType').value, holderCode: holderCode, holderName: $('subHolderName').value.trim(),
+      bankName: $('subBankName').value.trim(), states: states, city: $('subCity').value.trim(), plan: $('subPlan').value,
+      amountPaid: $('subAmount').value.trim(), paymentRef: $('subProof').value.trim(), paymentProof: $('subProof').value.trim()
+    }).then(function (r) {
+      if (r.success) {
+        showToast('Subscription created and active'); closeSheet('addSubSheet', 'addSubBackdrop');
+        ['subHolderCode', 'subHolderName', 'subBankName', 'subStates', 'subCity', 'subAmount', 'subProof'].forEach(function (id) { $(id).value = ''; });
+        loadSubscriptions();
+      } else { box.textContent = r.error || 'Could not create the subscription.'; box.classList.remove('hidden'); }
+    });
+  }).catch(function (err) { box.textContent = err.message; box.classList.remove('hidden'); });
+});
+
+/* ---------------- WIRE UP ---------------- */
+$("loginBtn").addEventListener("click", doLogin);
+$("adminPassword").addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
+$("refreshBtn").addEventListener("click", refreshAll);
+$("logoutBtn").addEventListener("click", function () {
+  localStorage.removeItem('vmw_admin_pin');
+  localStorage.removeItem('vmw_admin_phone');
+  localStorage.removeItem('vmw_admin_cache');
+  location.reload();
+});
+$("productFilter").addEventListener("change", renderLeads);
+$("stageFilter").addEventListener("change", renderLeads);
+$("docFilter").addEventListener("change", renderLeads);
+$("stateFilter").addEventListener("input", renderLeads);
+$("attentionFilter").addEventListener("change", renderLeads);
+$("showHiddenCheckbox").addEventListener("change", reloadLeadsOnly);
+</script>
+</body>
+</html>

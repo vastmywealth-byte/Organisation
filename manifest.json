@@ -1,0 +1,16 @@
+{
+  "name": "Vast My Wealth Organisation",
+  "short_name": "VMW Org",
+  "description": "Team, leads, MIS and earnings for Vast My Wealth zonal, regional, city, RM and partner seats.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0E1628",
+  "theme_color": "#16233F",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

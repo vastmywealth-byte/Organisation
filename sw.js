@@ -1,6 +1,6 @@
 // Service worker for the VMW organisation app.
 // BUMP `VERSION` on every release: phones then show "Update available" and load the new files.
-var VERSION = "org-v2";
+var VERSION = "org-v3";
 var SHELL = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./logo.jpg"];
 
 self.addEventListener("install", function (e) {

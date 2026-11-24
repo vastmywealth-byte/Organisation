@@ -88,12 +88,12 @@ input,select,textarea{width:100%;padding:11px;border-radius:10px;border:1px soli
     <div class="field"><label for="lPin">PIN</label><input id="lPin" type="password" inputmode="numeric" autocomplete="current-password"></div>
     <div id="lErr" class="err hidden"></div>
     <button class="btn btn-gold btn-block" id="lBtn">Log in</button>
-    <div class="sub" style="margin-top:10px">Your PIN was emailed to you when your seat was created. Forgot it? Ask the admin for a reset.</div>
+    <div class="sub" style="margin-top:10px">Your PIN was emailed to you when you were added to the team. Forgot it? Ask the admin for a reset.</div>
   </div>
 </div>
 
 <div id="appView" class="hidden">
-  <div class="top"><div class="wrap"><div style="display:flex;align-items:center;gap:10px"><img src="logo.jpg" alt="" style="width:36px;height:36px;border-radius:50%"><div><div class="brand" id="hdName">VMW</div><div class="sub" id="hdSub"></div></div></div><button class="btn btn-line btn-sm" id="refreshBtn">↻</button></div></div>
+  <div class="top"><div class="wrap"><div style="display:flex;align-items:center;gap:10px"><img src="logo.jpg" alt="" style="width:36px;height:36px;border-radius:50%"><div><div class="brand" id="hdName">VMW</div><div class="sub" id="hdSub"></div><div class="sub" id="hdUpd" style="font-size:11px"></div></div></div><button class="btn btn-line btn-sm" id="refreshBtn">↻</button></div></div>
   <div class="wrap" id="main"></div>
   <div class="nav" id="nav"></div>
 </div>
@@ -106,6 +106,7 @@ input,select,textarea{width:100%;padding:11px;border-radius:10px;border:1px soli
 var API_URL = "https://vmw-portal-api.vastmywealth.workers.dev/";
 
 var SESS = null, ME = null, TAB = "", CACHE = {}, DEFERRED = null;
+var BUNDLE = null, SAVED_AT = 0, LAST_EDGE = "", INFLIGHT = null, SECOND_DONE = false, SHELL_BUILT = false;
 function $(id) { return document.getElementById(id); }
 function esc(s) { var d = document.createElement("div"); d.textContent = (s === undefined || s === null) ? "" : s; return d.innerHTML; }
 function escA(s) { return esc(s).replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
@@ -120,10 +121,10 @@ function busy(btn, label, fn) { var o = btn.innerHTML; btn.disabled = true; btn.
 
 function api(action, extra) {
   var p = { action: action };
-  if (SESS) { p.mobile = SESS.mobile; p.token = SESS.token; }
+  if (SESS) { p.mobile = SESS.mobile; p.token = SESS.token; if (SESS.exp) { p.exp = SESS.exp; p.sig = SESS.sig; } }
   Object.keys(extra || {}).forEach(function (k) { p[k] = extra[k]; });
   return fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(p) })
-    .then(function (r) { return r.text(); })
+    .then(function (r) { LAST_EDGE = r.headers.get("X-Edge-Cache") || ""; return r.text(); })
     .then(function (raw) {
       var j; try { j = JSON.parse(raw); } catch (e) { throw new Error("Server returned an unexpected reply. Try again."); }
       if (j && j.authExpired) { logout(true); throw new Error("Session expired. Please log in again."); }
@@ -167,7 +168,7 @@ $("lBtn").addEventListener("click", function () {
     return fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "orgLogin", mobile: mobile, pin: pin }) })
       .then(function (r) { return r.json(); }).then(function (j) {
         if (!j.success) { $("lErr").textContent = j.error || "Login failed."; $("lErr").classList.remove("hidden"); return; }
-        SESS = { mobile: j.mobile, token: j.token, name: j.name, role: j.role, code: j.code };
+        SESS = { mobile: j.mobile, token: j.token, name: j.name, role: j.role, code: j.code, exp: j.exp || 0, sig: j.sig || "" };
         store("org_sess", JSON.stringify(SESS)); store("org_mobile", mobile); $("lPin").value = "";
         start();
       });
@@ -175,31 +176,84 @@ $("lBtn").addEventListener("click", function () {
 });
 $("lPin").addEventListener("keydown", function (e) { if (e.key === "Enter") $("lBtn").click(); });
 function logout(silent) {
-  if (SESS && !silent) { api("orgLogout").catch(function () {}); }
-  SESS = null; ME = null; CACHE = {}; store("org_sess", null); showLogin();
+  if (SESS && !silent) { api("orgLogout").catch(function () {}); store(bundleKey(), null); }
+  SESS = null; ME = null; BUNDLE = null; SHELL_BUILT = false; CACHE = {}; store("org_sess", null); showLogin();
 }
+
+/* ===== data layer: saved copy first, fresh copy in the background ===== */
+function bundleKey() { return "org_bundle_" + (SESS ? SESS.mobile : ""); }
+function fetchBundle(fresh) {
+  if (INFLIGHT && !fresh) return INFLIGHT;
+  var p = api("orgBundle", fresh ? { fresh: 1 } : {}).then(function (r) {
+    if (!r || !r.success || !r.me || !r.me.success) throw new Error((r && r.error) || "Could not load");
+    return r;
+  });
+  INFLIGHT = p;
+  var clear = function () { if (INFLIGHT === p) INFLIGHT = null; };
+  p.then(clear, clear);
+  return p;
+}
+function applyBundle(b, savedAt) {
+  BUNDLE = b; ME = b.me; CACHE.leads = b.leads; CACHE.team = b.team && b.team.team;
+  SAVED_AT = savedAt || Date.now();
+  if (!savedAt) store(bundleKey(), JSON.stringify({ b: b, t: SAVED_AT }));
+  showUpdated();
+}
+function dataFor(key) { return Promise.resolve(BUNDLE && BUNDLE[key] ? BUNDLE[key] : { success: false, error: "Not available for your login." }); }
+function showUpdated() {
+  var el = $("hdUpd"); if (!el || !SAVED_AT) return;
+  var m = Math.floor((Date.now() - SAVED_AT) / 60000);
+  el.textContent = "Updated " + (m < 1 ? "just now" : m < 60 ? m + " min ago" : Math.floor(m / 60) + " h ago");
+}
+setInterval(showUpdated, 30000);
+function canSoftRender() {
+  if ($("sheetRoot") && $("sheetRoot").innerHTML) return false;
+  var a = document.activeElement;
+  return !(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));
+}
+function softRender() { if (SHELL_BUILT && TAB && canSoftRender()) go(TAB, false, true); }
+function refreshNow() { return fetchBundle(true).then(function (b) { applyBundle(b); }).catch(function () { /* keep what is on screen */ }); }
 
 /* ===== shell ===== */
 var NAV_FULL = [["ov", "Overview"], ["leads", "Leads"], ["team", "Team"], ["earn", "Earnings"], ["me", "Me"]];
 var NAV_SUPPORT = [["leads", "Leads"], ["me", "Me"]];
+function buildShell() {
+  SHELL_BUILT = true;
+  var r = ME;
+  $("hdName").textContent = r.seat.name; $("hdSub").textContent = r.seat.role + (r.seat.territory ? " · " + r.seat.territory : "");
+  var nav = r.seat.role === "Support" ? NAV_SUPPORT : NAV_FULL;
+  $("nav").innerHTML = nav.map(function (n) { return '<button data-nav="' + n[0] + '">' + n[1] + "</button>"; }).join("");
+  go(nav[0][0]);
+}
 function start() {
   $("loginView").classList.add("hidden"); $("appView").classList.remove("hidden");
-  api("orgMe").then(function (r) {
-    if (!r.success) { toast(r.error || "Could not load", true); return; }
-    ME = r;
-    $("hdName").textContent = r.seat.name; $("hdSub").textContent = r.seat.role + (r.seat.territory ? " · " + r.seat.territory : "") + " · " + r.seat.code;
-    var nav = r.seat.role === "Support" ? NAV_SUPPORT : NAV_FULL;
-    $("nav").innerHTML = nav.map(function (n) { return '<button data-nav="' + n[0] + '">' + n[1] + "</button>"; }).join("");
-    go(nav[0][0]);
-  }).catch(function (e) { toast(e.message, true); });
+  SHELL_BUILT = false; SECOND_DONE = false;
+  var cached = null; try { cached = JSON.parse(load(bundleKey()) || "null"); } catch (e) { cached = null; }
+  var shown = false;
+  if (cached && cached.b && cached.b.me && cached.b.me.success) { applyBundle(cached.b, cached.t); buildShell(); shown = true; }
+  else $("main").innerHTML = '<div class="sub" style="padding:20px 0">Loading…</div>';
+  fetchBundle(false).then(function (b) {
+    applyBundle(b);
+    if (!shown) buildShell(); else softRender();
+    // the first answer may be a saved copy from the edge; ask once more shortly, by then the fresh copy is ready
+    if (LAST_EDGE === "HIT" && !SECOND_DONE) {
+      SECOND_DONE = true;
+      setTimeout(function () { fetchBundle(false).then(function (b2) { applyBundle(b2); softRender(); }).catch(function () {}); }, 8000);
+    }
+  }).catch(function (e) {
+    if (shown) { showUpdated(); toast("Could not refresh. Showing your last saved data.", true); }
+    else toast(e.message, true);
+  });
 }
 $("nav").addEventListener("click", function (e) { var b = e.target.closest("[data-nav]"); if (b) go(b.getAttribute("data-nav")); });
-$("refreshBtn").addEventListener("click", function () { CACHE = {}; go(TAB, true); });
-function go(tab, force) {
+$("refreshBtn").addEventListener("click", function () {
+  $("hdUpd").textContent = "Refreshing…";
+  fetchBundle(true).then(function (b) { applyBundle(b); softRender(); }).catch(function (e) { showUpdated(); toast(e.message, true); });
+});
+function go(tab, force, soft) {
   TAB = tab;
   document.querySelectorAll("#nav button").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-nav") === tab); });
-  window.scrollTo(0, 0);
-  $("main").innerHTML = '<div class="sub" style="padding:20px 0">Loading…</div>';
+  if (!soft) { window.scrollTo(0, 0); $("main").innerHTML = '<div class="sub" style="padding:20px 0">Loading…</div>'; }
   ({ ov: viewOverview, leads: viewLeads, team: viewTeam, earn: viewEarnings, me: viewMe })[tab](force);
 }
 function fail(e) { $("main").innerHTML = '<div class="err">' + esc(e.message || e) + "</div>"; }
@@ -215,7 +269,7 @@ function closeSheet() { $("sheetRoot").innerHTML = ""; }
 function box(v, l) { return '<div class="stat"><b>' + v + "</b><span>" + l + "</span></div>"; }
 function pct(a, b) { return b ? Math.round(a * 100 / b) + "%" : "—"; }
 function viewOverview() {
-  api("orgMis").then(function (r) {
+  dataFor("mis").then(function (r) {
     if (!r.success) return fail(r.error || "Could not load");
     var t = r.totals, h = "";
     h += '<div class="sub" style="margin-top:12px">Leads created in the last ' + r.months + " months, for you and everyone in your team. Updated " + new Date(r.generatedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) + ".</div>";
@@ -229,7 +283,7 @@ function viewOverview() {
     if ((r.banks || []).length) h += '<div class="sec">Banks with disbursals</div><div class="card">' + r.banks.map(function (b) { return '<div class="row"><span>' + esc(b.bank) + '</span><span class="sub">' + b.n + " · " + inr(b.amount) + "</span></div>"; }).join("") + "</div>";
     if ((r.holdReasons || []).length) h += '<div class="sec">Why leads are on hold</div><div class="card">' + r.holdReasons.map(function (b) { return '<div class="row"><span>' + esc(b.reason) + '</span><span class="sub">' + b.n + "</span></div>"; }).join("") + "</div>";
     var fk = Object.keys(r.seatFill || {});
-    if (fk.length) h += '<div class="sec">Seats in your team</div><div class="card">' + fk.map(function (k) { var f = r.seatFill[k]; return '<div class="row"><span>' + esc(k) + '</span><span class="sub">' + f.active + " active · " + f.vacant + " vacant</span></div>"; }).join("") + "</div>";
+    if (fk.length) h += '<div class="sec">Team positions</div><div class="card">' + fk.map(function (k) { var f = r.seatFill[k]; return '<div class="row"><span>' + esc(k) + '</span><span class="sub">' + f.active + " active · " + f.vacant + " open</span></div>"; }).join("") + "</div>";
     $("main").innerHTML = h;
   }).catch(fail);
 }
@@ -268,8 +322,7 @@ function viewLeads(force) {
     if ($("lchips")) $("lchips").addEventListener("click", function (e) { var b = e.target.closest("[data-f]"); if (!b) return; LFILTER = b.getAttribute("data-f"); document.querySelectorAll("#lchips .chip").forEach(function (c) { c.classList.toggle("on", c === b); }); renderLeads(); });
     renderLeads();
   };
-  if (CACHE.leads && !force) return done(CACHE.leads);
-  api("orgLeads").then(function (r) { if (!r.success) return fail(r.error || "Could not load"); CACHE.leads = r; done(r); }).catch(fail);
+  dataFor("leads").then(function (r) { if (!r.success) return fail(r.error || "Could not load"); done(r); }).catch(fail);
 }
 function renderLeads() {
   var list = LEADS.filter(leadMatch);
@@ -293,7 +346,7 @@ function leadBody(l) {
   var h = '<div class="lead-body">';
   h += '<div class="sub">Lead ID ' + esc(l.leadId) + (l.dsaStatus ? " · DSA: " + esc(l.dsaStatus) : "") + (l.disbursedAmount ? " · Disbursed " + inr(l.disbursedAmount) : "") + "</div>";
   if (l.reason) h += '<div class="sub" style="margin-top:4px">' + esc(l.reason) + "</div>";
-  if (!l.mine) return h + '<div class="sub" style="margin-top:6px">Mobile ' + esc(l.mobile) + ". Documents and actions belong to the owner seat.</div></div>";
+  if (!l.mine) return h + '<div class="sub" style="margin-top:6px">Mobile ' + esc(l.mobile) + ". Documents and actions belong to the team member who owns this customer.</div></div>";
   h += '<div class="sub" style="margin-top:4px">Documents found: ' + ["pan", "aadhaar", "bank"].map(function (k) { return (l.docs[k] ? "✓ " : "✗ ") + { pan: "PAN", aadhaar: "Aadhaar", bank: "Bank statement" }[k]; }).join(" · ") + "</div>";
   (l.pitch || []).forEach(function (p) { h += '<div class="pitch">' + esc(p) + "</div>"; });
   var workable = l.bucket !== "";
@@ -316,7 +369,7 @@ $("main").addEventListener("click", function (e) {
 
 function doVerify(l, btn) {
   if (!confirm("Confirm PAN, Aadhaar and the bank statement are the right documents? The lead will be released.")) return;
-  busy(btn, "Releasing…", function () { return api("orgVerify", { leadId: l.leadId }).then(function (r) { if (!r.success) return toast(r.error || "Failed", true); toast("Released"); CACHE = {}; viewLeads(true); }); }).catch(function (e) { toast(e.message, true); });
+  busy(btn, "Releasing…", function () { return api("orgVerify", { leadId: l.leadId }).then(function (r) { if (!r.success) return toast(r.error || "Failed", true); toast("Released"); return refreshNow().then(function () { viewLeads(); }); }); }).catch(function (e) { toast(e.message, true); });
 }
 function openNote(l) {
   openSheet("<h3>Note — " + esc(l.name) + '</h3><div class="field"><textarea id="nt" rows="4" placeholder="What did the customer say?"></textarea></div><button class="btn btn-gold btn-block" id="ntSave">Save note</button>');
@@ -389,7 +442,7 @@ function openReq(l) {
         $("rqOut").innerHTML = '<div class="ok-box">' + (r.email ? "E-mail sent to the customer." : "No e-mail on file for this customer, so only WhatsApp can be used.") + (r.sentBack ? " The lead went back to Pending Documents." : "") + "</div>" +
           '<a class="btn btn-ok btn-block" target="_blank" rel="noopener" href="' + escA(wa) + '">Open WhatsApp with the message</a><button class="btn btn-line btn-block" style="margin-top:8px" id="rqCopy">Copy message instead</button>';
         $("rqCopy").onclick = function () { (navigator.clipboard ? navigator.clipboard.writeText(r.waText) : Promise.reject()).then(function () { toast("Copied"); }).catch(function () { toast("Copy not available on this browser", true); }); };
-        CACHE = {};
+        refreshNow();
       });
     }).catch(function (e) { toast(e.message, true); });
   };
@@ -397,16 +450,16 @@ function openReq(l) {
 
 /* ===== team ===== */
 function viewTeam() {
-  api("orgTeam").then(function (r) {
+  dataFor("team").then(function (r) {
     if (!r.success) return fail(r.error || "Could not load");
     CACHE.team = r.team;
     var h = '<div class="acts" style="margin-top:12px">' + (ME.canRecruit.length ? '<button class="btn btn-gold" id="addSeat">+ Add team member</button>' : "") + "</div>";
     var fk = Object.keys(r.fill || {});
-    if (fk.length) h += '<div class="stats">' + fk.map(function (k) { var f = r.fill[k]; return box(f.active + (f.vacant ? " / " + (f.active + f.vacant) : ""), k + (f.vacant ? " (active / seats)" : " active")); }).join("") + "</div>";
+    if (fk.length) h += '<div class="stats">' + fk.map(function (k) { var f = r.fill[k]; return box(f.active + (f.vacant ? " / " + (f.active + f.vacant) : ""), k + (f.vacant ? " (active / positions)" : " active")); }).join("") + "</div>";
     if (r.pendingMoves) h += '<div class="sub">' + r.pendingMoves + " move request(s) waiting for admin approval.</div>";
     h += (r.team.length ? r.team.map(function (s) {
-      var tag = s.status === "Active" ? '<span class="tag ok">Active</span>' : s.status === "Vacant" ? '<span class="tag warn">Vacant</span>' : '<span class="tag bad">' + esc(s.status) + "</span>";
-      return '<div class="card"><div class="row"><div><div class="name">' + esc(s.name || "(vacant seat)") + " " + tag + '</div><div class="sub">' + esc(s.role) + (s.territory ? " · " + esc(s.territory) : "") + " · " + esc(s.code) + " · reports to " + esc(s.parent) + "</div>" +
+      var tag = s.status === "Active" ? '<span class="tag ok">Active</span>' : s.status === "Vacant" ? '<span class="tag warn">Open</span>' : '<span class="tag bad">' + esc(s.status) + "</span>";
+      return '<div class="card"><div class="row"><div><div class="name">' + esc(s.name || "(open position)") + " " + tag + '</div><div class="sub">' + esc(s.role) + (s.territory ? " · " + esc(s.territory) : "") + " · " + esc(s.code) + " · reports to " + esc(s.parent) + "</div>" +
         (s.mobile ? '<div class="sub">' + esc(s.mobile) + (s.lastLogin ? " · last login " + fmtDate(s.lastLogin) : " · never logged in") + "</div>" : "") +
         '<div class="sub">' + (s.shareStatus === "Recommended" ? "Your recommendation: " + s.recommended + "% (awaiting admin)" : s.shareStatus === "Approved" ? "Share approved by admin" : "No share recommended yet") + "</div></div>" +
         '<div style="display:flex;flex-direction:column;gap:6px"><button class="btn btn-line btn-sm" data-rec="' + escA(s.code) + '">Recommend %</button><button class="btn btn-line btn-sm" data-mv="' + escA(s.code) + '">Move…</button></div></div></div>';
@@ -438,7 +491,7 @@ function openAddSeat() {
     busy($("asSave"), "Creating…", function () {
       return api("orgAddSeat", { role: $("asRole").value, parent: $("asParent").value, territory: $("asTerr").value.trim(), name: $("asName").value.trim(), memberMobile: $("asMobile").value.trim(), email: $("asEmail").value.trim(), recommended: $("asRec").value.trim() }).then(function (r) {
         if (!r.success) { $("asErr").innerHTML = '<div class="err">' + esc(r.error || "Failed") + "</div>"; return; }
-        toast(r.message || "Created"); closeSheet(); go("team");
+        toast(r.message || "Created"); closeSheet(); refreshNow().then(function () { go("team"); });
       });
     }).catch(function (e) { toast(e.message, true); });
   };
@@ -447,17 +500,17 @@ function openRec(code) {
   var s = (CACHE.team || []).filter(function (x) { return x.code === code; })[0] || {};
   openSheet("<h3>Recommend commission share</h3><div class=\"sub\">For " + esc(s.name || code) + ". This is a recommendation only; the admin decides every payout share.</div>" +
     '<div class="field"><label>Share of commission received on each lead (%)</label><input id="rcPct" inputmode="decimal" value="' + escA(s.recommended || "") + '"></div><button class="btn btn-gold btn-block" id="rcSave">Send recommendation</button>');
-  $("rcSave").onclick = function () { busy($("rcSave"), "Sending…", function () { return api("orgRecommendShare", { seat: code, percent: $("rcPct").value.trim() }).then(function (r) { if (!r.success) return toast(r.error || "Failed", true); toast(r.message || "Sent"); closeSheet(); go("team"); }); }).catch(function (e) { toast(e.message, true); }); };
+  $("rcSave").onclick = function () { busy($("rcSave"), "Sending…", function () { return api("orgRecommendShare", { seat: code, percent: $("rcPct").value.trim() }).then(function (r) { if (!r.success) return toast(r.error || "Failed", true); toast(r.message || "Sent"); closeSheet(); refreshNow().then(function () { go("team"); }); }); }).catch(function (e) { toast(e.message, true); }); };
 }
 function openMove(code) {
-  openSheet("<h3>Request a move</h3><div class=\"sub\">Moving a seat needs admin approval. Old leads keep the owner they were recorded with.</div>" +
+  openSheet("<h3>Request a move</h3><div class=\"sub\">Moving a team member needs admin approval. Old leads keep the owner they were recorded with.</div>" +
     '<div class="field"><label>Move ' + esc(code) + ' under</label><select id="mvTo">' + seatOptions(code) + '</select></div><div class="field"><label>Reason (optional)</label><input id="mvNote"></div><button class="btn btn-gold btn-block" id="mvSave">Send request</button>');
-  $("mvSave").onclick = function () { busy($("mvSave"), "Sending…", function () { return api("orgRequestMove", { seat: code, newParent: $("mvTo").value, note: $("mvNote").value.trim() }).then(function (r) { if (!r.success) return toast(r.error || "Failed", true); toast(r.message || "Sent"); closeSheet(); go("team"); }); }).catch(function (e) { toast(e.message, true); }); };
+  $("mvSave").onclick = function () { busy($("mvSave"), "Sending…", function () { return api("orgRequestMove", { seat: code, newParent: $("mvTo").value, note: $("mvNote").value.trim() }).then(function (r) { if (!r.success) return toast(r.error || "Failed", true); toast(r.message || "Sent"); closeSheet(); refreshNow().then(function () { go("team"); }); }); }).catch(function (e) { toast(e.message, true); }); };
 }
 
 /* ===== earnings ===== */
 function viewEarnings() {
-  api("orgEarnings").then(function (r) {
+  dataFor("earn").then(function (r) {
     if (!r.success) return fail(r.error || "Could not load");
     var e = r.earnings, h = '<div class="sub" style="margin-top:12px">Your share is a part of the commission actually received from lenders. It is decided by the admin and is not a guaranteed amount. Payout is on one fixed day each month.</div>';
     h += '<div class="stats">' + box(r.shareStatus === "Approved" ? r.share + "%" : "—", "Your approved share") + box(inr(e.accrued), "Earned, not yet in a statement") + box(inr(e.inStatement), "In a statement, due") + box(inr(e.paid), "Paid") + "</div>";
@@ -475,9 +528,9 @@ function viewEarnings() {
 /* ===== me ===== */
 function viewMe() {
   var s = ME.seat;
-  var h = '<div class="card" style="margin-top:12px"><div class="name">' + esc(s.name) + '</div><div class="sub">' + esc(s.role) + (s.territory ? " · " + esc(s.territory) : "") + " · " + esc(s.zone) + " zone · seat " + esc(s.code) + "</div>" +
+  var h = '<div class="card" style="margin-top:12px"><div class="name">' + esc(s.name) + '</div><div class="sub">' + esc(s.role) + (s.territory ? " · " + esc(s.territory) : "") + " · " + esc(s.zone) + " zone · ID " + esc(s.code) + "</div>" +
     '<div class="sub">' + esc(s.email) + "</div></div>";
-  if (ME.referralLink) h += '<div class="sec">Your customer link</div><div class="card"><div class="sub" style="word-break:break-all">' + esc(ME.referralLink) + '</div><div class="acts"><button class="btn btn-gold btn-sm" id="cpLink">Copy</button><button class="btn btn-line btn-sm" id="shLink">Share</button></div><div class="sub" style="margin-top:6px">Customers who apply through this link are recorded under your seat.</div></div>';
+  if (ME.referralLink) h += '<div class="sec">Your customer link</div><div class="card"><div class="sub" style="word-break:break-all">' + esc(ME.referralLink) + '</div><div class="acts"><button class="btn btn-gold btn-sm" id="cpLink">Copy</button><button class="btn btn-line btn-sm" id="shLink">Share</button></div><div class="sub" style="margin-top:6px">Customers who apply through this link are recorded under your name.</div></div>';
   h += '<div class="sec">Change PIN</div><div class="card"><div class="field"><label>Current PIN</label><input id="cpOld" type="password" inputmode="numeric"></div><div class="field"><label>New PIN (4 to 8 digits)</label><input id="cpNew" type="password" inputmode="numeric"></div><button class="btn btn-gold btn-block" id="cpSave">Change PIN</button></div>';
   h += '<button class="btn btn-bad btn-block" style="margin-top:16px" id="outBtn">Log out</button>';
   $("main").innerHTML = h;

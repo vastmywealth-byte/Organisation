@@ -1,7 +1,7 @@
 // Service worker for the VMW organisation app.
 // BUMP `VERSION` on every release: phones then show "Update available" and load the new files.
-var VERSION = "org-v5";
-var SHELL = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./logo.jpg"];
+var VERSION = "org-v7";
+var SHELL = ["./", "./index.html", "./org-ranks.js", "./join.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./logo.jpg"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(SHELL); }).catch(function () { /* offline install is best effort */ }));

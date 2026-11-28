@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Join Vast My Wealth</title>
+<meta name="theme-color" content="#16233F">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{--bg:#0E1628;--panel:#16233F;--panel-2:#1D2D4F;--line:#2A3C63;--text:#EAF0FF;--muted:#9FB0D3;--gold:#D4A64A;--ok:#4CC38A;--ok-bg:rgba(76,195,138,.14);--bad:#F0665E;--bad-bg:rgba(240,102,94,.14);--warn:#F0B94B;--warn-bg:rgba(240,185,75,.14);--info-bg:rgba(90,140,255,.12)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding:calc(14px + env(safe-area-inset-top)) 0 calc(30px + env(safe-area-inset-bottom))}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px}
+h1,h2,h3,p,ul,ol{margin:0}
+h1{font-size:22px;color:var(--gold)} h2{font-size:19px;margin-bottom:6px} h3{font-size:16px}
+.sub{color:var(--muted);font-size:13.5px}
+.hidden{display:none!important}
+.head{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.head img{width:52px;height:52px;border-radius:50%}
+.steps{display:flex;gap:6px;margin:6px 0 16px}
+.steps span{flex:1;height:5px;border-radius:4px;background:var(--line)}
+.steps span.on{background:var(--gold)}
+.steplabel{font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+.rank{cursor:pointer;border-width:2px}
+.rank.sel{border-color:var(--gold);background:var(--panel-2)}
+.rank .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rank ul{padding-left:18px;margin-top:8px;font-size:14px}
+.rank li{margin:3px 0}
+.tag{display:inline-block;border-radius:20px;padding:2px 10px;font-size:11.5px;font-weight:700;background:var(--panel-2);color:var(--muted)}
+.tag.ok{background:var(--ok-bg);color:var(--ok)} .tag.gold{background:var(--gold);color:#1a1405}
+.btn{border:0;border-radius:10px;padding:13px 16px;font:700 15px system-ui;cursor:pointer;background:var(--panel-2);color:var(--text);width:100%;margin-top:10px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.gold{background:var(--gold);color:#1a1405}
+.btn.line{background:transparent;border:1px solid var(--line)}
+.row2{display:flex;gap:10px}.row2 .btn{margin-top:10px}
+.pitch{background:var(--info-bg);border-radius:10px;padding:10px 12px;font-size:13.5px;margin:10px 0}
+.path{margin:8px 0 2px}
+.path .p{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.path .p:last-child{border-bottom:0}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--line);flex-shrink:0}
+.p.goal .dot{background:var(--gold)} .p.start .dot{background:var(--ok)}
+.p.goal{font-weight:700}
+.p .t{margin-left:auto;color:var(--muted);font-size:13px;text-align:right}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{border:1px solid var(--line);border-radius:20px;padding:7px 13px;background:transparent;color:var(--muted);font:600 13px system-ui;cursor:pointer}
+.chip.on{background:var(--gold);color:#1a1405;border-color:var(--gold)}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+th,td{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--muted);font-size:12px;font-weight:600} td.n,th.n{text-align:right}
+tr.goalrow td{color:var(--gold);font-weight:700}
+.big{font-size:22px;font-weight:800}
+ol.rules{padding-left:20px} ol.rules li{margin:8px 0;font-size:14.5px}
+.field{margin:11px 0}.field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font:16px system-ui}
+.chk{display:flex;gap:10px;align-items:flex-start;margin:14px 0;font-size:14.5px}
+.chk input{width:22px;height:22px;margin-top:2px;flex-shrink:0}
+.err{background:var(--bad-bg);color:var(--bad);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:14px}
+.okbox{background:var(--ok-bg);color:var(--ok);border-radius:10px;padding:12px;margin:10px 0}
+.hp{position:absolute;left:-5000px;height:0;overflow:hidden}
+a{color:var(--gold)}
+.fine{font-size:12.5px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><img src="logo.jpg" alt="" onerror="this.style.display='none'"><div><h1>Join Vast My Wealth</h1><div class="sub">Free to join. Earn from loans you bring. Build a team when you are ready.</div></div></div>
+  <div class="steps" id="steps"><span></span><span></span><span></span><span></span></div>
+  <noscript><div class="err">Please turn on JavaScript to use this page.</div></noscript>
+  <div id="loading" class="sub">Loading…</div>
+  <div id="loadErr" class="err hidden"></div>
+
+  <!-- 1 -->
+  <section id="s1" class="hidden">
+    <div class="steplabel">Step 1 of 4</div>
+    <h2>Which position do you want to work towards?</h2>
+    <p class="sub">Everyone starts as a Partner. Positions are earned from your monthly business, so they cannot be bought or handed out. Pick the one you are aiming for, and you will see exactly what it takes.</p>
+    <div id="rankCards"></div>
+    <button class="btn gold" id="to2" disabled>Continue</button>
+    <p class="fine">Already registered? <a href="./">Log in</a></p>
+  </section>
+
+  <!-- 2 -->
+  <section id="s2" class="hidden">
+    <div class="steplabel">Step 2 of 4</div>
+    <h2>How it works</h2>
+    <ol class="rules" id="short"></ol>
+    <h3 style="margin-top:16px">Your path</h3>
+    <div class="card path" id="path"></div>
+    <h3 style="margin-top:16px">What you could earn: a rough illustration</h3>
+    <div class="sub">Pick a loan type. Amounts are before tax, for ₹1 crore of loans disbursed.</div>
+    <div class="chips" id="chips"></div>
+    <div class="card" id="illus"></div>
+    <div class="row2"><button class="btn line" id="back1">Back</button><button class="btn gold" id="to3">Continue</button></div>
+  </section>
+
+  <!-- 3 -->
+  <section id="s3" class="hidden">
+    <div class="steplabel">Step 3 of 4</div>
+    <h2>The rules, in full</h2>
+    <p class="sub" id="goalLine"></p>
+    <ol class="rules" id="terms"></ol>
+    <label class="chk"><input type="checkbox" id="agree"><span>I have read and understood the rules above. I know that income depends on loans actually disbursed and paid by lenders, and is not guaranteed.</span></label>
+    <div class="fine" id="verLine"></div>
+    <div class="row2"><button class="btn line" id="back2">Back</button><button class="btn gold" id="to4" disabled>I agree, continue</button></div>
+  </section>
+
+  <!-- 4 -->
+  <section id="s4" class="hidden">
+    <div class="steplabel">Step 4 of 4</div>
+    <h2>Create your login</h2>
+    <p class="sub">Your login PIN is sent to your e-mail. No payment is needed.</p>
+    <div class="field"><label for="fName">Full name</label><input id="fName" autocomplete="name"></div>
+    <div class="field"><label for="fMobile">Mobile number (10 digits)</label><input id="fMobile" inputmode="numeric" maxlength="10" autocomplete="tel-national"></div>
+    <div class="field"><label for="fEmail">E-mail address</label><input id="fEmail" type="email" autocomplete="email"></div>
+    <div class="field"><label for="fZone">Your zone (you can work anywhere in India; this only sets who you report to)</label><select id="fZone"></select></div>
+    <div class="field"><label for="fRef">Referral code (if someone invited you)</label><input id="fRef" autocomplete="off"></div>
+    <div class="hp" aria-hidden="true"><label>Website<input id="fWebsite" tabindex="-1" autocomplete="off"></label></div>
+    <div id="regErr" class="err hidden"></div>
+    <div class="row2"><button class="btn line" id="back3">Back</button><button class="btn gold" id="submit">Create my login</button></div>
+  </section>
+
+  <section id="done" class="hidden">
+    <h2>You are in</h2>
+    <div class="okbox" id="doneMsg"></div>
+    <p class="sub" id="doneNext"></p>
+    <a class="btn gold" style="display:block;text-align:center;text-decoration:none" id="loginBtn" href="./">Go to login</a>
+  </section>
+</div>
+
+<script>
+var API_URL = "https://vmw-portal-api.vastmywealth.workers.dev/";
+var S = { info: null, goal: "", product: "", step: 1 };
+
+function $(id) { return document.getElementById(id); }
+function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+function inr(n) { return "₹" + Math.round(Number(n) || 0).toLocaleString("en-IN"); }
+function amt(n) {
+  n = Number(n) || 0;
+  if (n >= 10000000) return "₹" + (n / 10000000).toFixed(2).replace(/\.?0+$/, "") + " crore";
+  if (n >= 100000) return "₹" + (n / 100000).toFixed(2).replace(/\.?0+$/, "") + " lakh";
+  return "₹" + n.toLocaleString("en-IN");
+}
+function api(action, extra) {
+  var p = { action: action }; Object.keys(extra || {}).forEach(function (k) { p[k] = extra[k]; });
+  return fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(p) })
+    .then(function (r) { return r.text(); })
+    .then(function (t) { try { return JSON.parse(t); } catch (e) { throw new Error("The server sent an unexpected reply. Please try again."); } });
+}
+function rank(key) { return S.info.ranks.filter(function (r) { return r.key === key; })[0]; }
+function firstRecruit() { return S.info.firstRecruitRank ? rank(S.info.firstRecruitRank) : null; }
+function ownShareText() {
+  var v = S.info.products.map(function (p) { return 100 - p.companySharePct; });
+  var lo = Math.min.apply(null, v), hi = Math.max.apply(null, v);
+  return lo === hi ? lo + "%" : lo + "% to " + hi + "%";
+}
+
+/* ---------- navigation ---------- */
+function show(step) {
+  S.step = step;
+  ["s1", "s2", "s3", "s4", "done"].forEach(function (id) { $(id).classList.add("hidden"); });
+  $(step === 5 ? "done" : "s" + step).classList.remove("hidden");
+  var bars = $("steps").children;
+  for (var i = 0; i < bars.length; i++) bars[i].className = (step === 5 || i < step) ? "on" : "";
+  window.scrollTo(0, 0);
+}
+
+/* ---------- step 1: goal ---------- */
+function renderRanks() {
+  var box = $("rankCards"); clear(box);
+  var fr = firstRecruit();
+  S.info.ranks.forEach(function (r) {
+    var c = el("div", "card rank" + (S.goal === r.key ? " sel" : ""));
+    c.setAttribute("role", "button"); c.tabIndex = 0;
+    var top = el("div", "top");
+    top.appendChild(el("h3", "", r.title));
+    top.appendChild(r.order === 0 ? el("span", "tag ok", "Everyone starts here") : el("span", "tag", r.target ? amt(r.target) + " a month" : ""));
+    c.appendChild(top);
+    var ul = el("ul");
+    ul.appendChild(el("li", "", r.order === 0 ? "No target. Bring loan customers and earn on your own business." : "Reach " + amt(r.target) + " of business in a month (your own plus your team's)."));
+    ul.appendChild(el("li", "", "Keep " + ownShareText() + " of the commission on your own business."));
+    ul.appendChild(el("li", "", r.pct > 0 ? "Team bonus: " + r.pct + "% of the company pool on your team's business." : "No team bonus yet."));
+    ul.appendChild(el("li", "", r.canRecruit ? "You can add your own team members." : (fr ? "Adding team members unlocks at " + fr.title + "." : "")));
+    ul.appendChild(el("li", "", r.next ? "Next level: " + r.next.title + " at " + amt(r.next.target) + " a month." : "This is the top position."));
+    c.appendChild(ul);
+    function pick() { S.goal = r.key; $("to2").disabled = false; renderRanks(); }
+    c.addEventListener("click", pick);
+    c.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+    box.appendChild(c);
+  });
+  var note = el("p", "fine", "Company pool = the company's share of each commission. Team bonuses are paid out of it, so they never reduce what your team members earn.");
+  box.appendChild(note);
+}
+
+/* ---------- step 2: how it works, path, illustration ---------- */
+function renderShort() {
+  var fr = firstRecruit(), ul = $("short"); clear(ul);
+  [
+    "Joining is free. You bring loan customers and earn when the loan is disbursed and the lender pays us.",
+    "You keep " + ownShareText() + " of the commission on your own business.",
+    "Every month, your own plus your team's business decides your position. You move up automatically.",
+    fr ? "From " + fr.title + " (" + amt(fr.target) + " a month) you can build your own team and earn a team bonus on their business." : "You can build a team as you grow."
+  ].forEach(function (t) { ul.appendChild(el("li", "", t)); });
+}
+function renderPath() {
+  var box = $("path"); clear(box);
+  S.info.ranks.forEach(function (r) {
+    var d = el("div", "p" + (r.key === S.goal ? " goal" : "") + (r.order === 0 ? " start" : ""));
+    d.appendChild(el("span", "dot"));
+    d.appendChild(el("span", "", r.title + (r.key === S.goal ? "  (your goal)" : "")));
+    d.appendChild(el("span", "t", r.order === 0 ? "You start here" : amt(r.target) + " a month"));
+    box.appendChild(d);
+  });
+}
+function renderChips() {
+  var box = $("chips"); clear(box);
+  S.info.products.forEach(function (p) {
+    var b = el("button", "chip" + (S.product === p.code ? " on" : ""), p.name);
+    b.type = "button";
+    b.addEventListener("click", function () { S.product = p.code; renderChips(); renderIllus(); });
+    box.appendChild(b);
+  });
+}
+function renderIllus() {
+  var box = $("illus"); clear(box);
+  var p = S.info.products.filter(function (x) { return x.code === S.product; })[0];
+  if (!p) { box.appendChild(el("div", "sub", "No loan types are set up yet.")); return; }
+  box.appendChild(el("div", "sub", p.name + ": the lender pays us about " + p.commissionPct + "% of the loan amount"));
+  box.appendChild(el("div", "sub", "On ₹1 crore disbursed, the lender pays us " + inr(p.commissionOnCrore)));
+  var a = el("div", "", ""); a.style.marginTop = "10px";
+  a.appendChild(el("div", "sub", "Your own business of ₹1 crore: you keep"));
+  a.appendChild(el("div", "big", inr(p.selfSourced)));
+  a.appendChild(el("div", "sub", "(" + (100 - p.companySharePct) + "% of the commission, at any position)"));
+  box.appendChild(a);
+  box.appendChild(el("div", "sub", "")); 
+  var h = el("div", "sub", "Team business of ₹1 crore: team bonus for each position"); h.style.marginTop = "12px"; box.appendChild(h);
+  var t = el("table"), thead = el("thead"), hr = el("tr");
+  ["Position", "Needs a month", "Team bonus"].forEach(function (x, i) { hr.appendChild(el("th", i ? "n" : "", x)); });
+  thead.appendChild(hr); t.appendChild(thead);
+  var tb = el("tbody");
+  S.info.ranks.filter(function (r) { return r.order > 0; }).forEach(function (r) {
+    var tr = el("tr", r.key === S.goal ? "goalrow" : "");
+    tr.appendChild(el("td", "", r.title)); tr.appendChild(el("td", "n", amt(r.target))); tr.appendChild(el("td", "n", inr(p.team[r.key] || 0)));
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb); box.appendChild(t);
+  var g = rank(S.goal);
+  if (g && g.order > 0) {
+    var sum = el("div", "pitch", "At your goal (" + g.title + "), ₹1 crore of your own business plus ₹1 crore of team business comes to about " + inr(p.selfSourced + (p.team[g.key] || 0)) + ".");
+    box.appendChild(sum);
+  }
+  box.appendChild(el("div", "fine", "This is an illustration only, not a promise of income. Real payouts depend on the lender and the loan. Team bonus assumes the team's business came through partners below you, every position above you is filled, and each met its monthly target. Amounts are before TDS and GST."));
+}
+
+/* ---------- step 3: rules ---------- */
+function renderTerms() {
+  var g = rank(S.goal);
+  $("goalLine").textContent = "Your goal position: " + (g ? g.title : "") + (g && g.order > 0 ? " (" + amt(g.target) + " of business in a month)." : ".") + " You start as a Partner.";
+  var ul = $("terms"); clear(ul);
+  S.info.terms.forEach(function (t) { ul.appendChild(el("li", "", t)); });
+  $("verLine").textContent = "Rules version " + S.info.version + ". We record the version you agreed to.";
+  $("agree").checked = false; $("to4").disabled = true;
+}
+
+/* ---------- step 4: register ---------- */
+function showRegErr(m) { var e = $("regErr"); e.textContent = m; e.classList.toggle("hidden", !m); }
+function register() {
+  showRegErr("");
+  var body = { name: $("fName").value.trim(), mobile: $("fMobile").value.replace(/\D/g, "").slice(-10), email: $("fEmail").value.trim(), zone: $("fZone").value,
+    goalRank: S.goal, ref: $("fRef").value.trim(), termsVersion: S.info.version, accepted: true, website: $("fWebsite").value };
+  if (body.name.length < 2) return showRegErr("Please enter your full name.");
+  if (!/^[6-9]\d{9}$/.test(body.mobile)) return showRegErr("Please enter a valid 10-digit mobile number.");
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email)) return showRegErr("Please enter a valid e-mail address. Your PIN is sent there.");
+  if (!body.zone) return showRegErr("Please choose your zone.");
+  var btn = $("submit"); btn.disabled = true; var old = btn.textContent; btn.textContent = "Creating…";
+  api("orgRegister", body).then(function (r) {
+    if (!r.success) {
+      showRegErr(r.error || "Could not complete the sign-up.");
+      if (r.rulesChanged) { var b = el("button", "btn gold", "Reload the page"); b.onclick = function () { location.reload(); }; $("regErr").appendChild(b); }
+      return;
+    }
+    $("doneMsg").textContent = r.message || "Your login has been created.";
+    $("doneNext").textContent = "Your ID is " + r.code + ". Log in with your mobile number and the PIN from the e-mail, then change the PIN under Me. Your progress towards " + (rank(S.goal) ? rank(S.goal).title : "your goal") + " shows on the home screen.";
+    show(5);
+  }).catch(function (e) { showRegErr(e.message || "Network problem. Please try again."); })
+    .then(function () { btn.disabled = false; btn.textContent = old; });
+}
+
+/* ---------- wiring ---------- */
+$("to2").onclick = function () { renderShort(); renderPath(); renderChips(); renderIllus(); show(2); };
+$("back1").onclick = function () { show(1); };
+$("to3").onclick = function () { renderTerms(); show(3); };
+$("back2").onclick = function () { show(2); };
+$("agree").onchange = function () { $("to4").disabled = !this.checked; };
+$("to4").onclick = function () { show(4); };
+$("back3").onclick = function () { show(3); };
+$("submit").onclick = register;
+
+function start() {
+  $("loading").classList.remove("hidden"); $("loadErr").classList.add("hidden");
+  api("orgJoinInfo").then(function (r) {
+    if (!r.success) throw new Error(r.error || "Could not load.");
+    S.info = r; S.product = r.products.length ? r.products[0].code : "";
+    var z = $("fZone"); clear(z); z.appendChild(el("option", "", "Choose…")); z.firstChild.value = "";
+    r.zones.forEach(function (n) { var o = el("option", "", n); o.value = n; z.appendChild(o); });
+    var m = /[?&]ref=([^&]+)/.exec(location.search); if (m) $("fRef").value = decodeURIComponent(m[1]).toUpperCase().replace(/[^A-Z0-9\-]/g, "").slice(0, 24);
+    $("loading").classList.add("hidden"); renderRanks(); show(1);
+  }).catch(function (e) {
+    $("loading").classList.add("hidden");
+    var box = $("loadErr"); box.classList.remove("hidden"); box.textContent = (e.message || "Could not load.") + " ";
+    var b = el("button", "btn gold", "Try again"); b.onclick = start; box.appendChild(b);
+  });
+}
+start();
+</script>
+</body>
+</html>

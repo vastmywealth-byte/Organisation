@@ -59,6 +59,11 @@ input,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--l
 .err{background:var(--bad-bg);color:var(--bad);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:14px}
 .okbox{background:var(--ok-bg);color:var(--ok);border-radius:10px;padding:12px;margin:10px 0}
 .hp{position:absolute;left:-5000px;height:0;overflow:hidden}
+input[type=range]{padding:0;height:28px;border:0;background:transparent;accent-color:var(--gold);margin:0}
+.lt{padding:10px 0;border-bottom:1px solid var(--line)} .lt:last-of-type{border-bottom:0}
+.lt .top{display:flex;justify-content:space-between;gap:8px;font-size:14px;margin-bottom:2px}
+.lt .top b{color:var(--gold)}
+.result{background:var(--panel-2);border-radius:12px;padding:14px;margin-top:12px;text-align:center}
 a{color:var(--gold)}
 .fine{font-size:12.5px;color:var(--muted);margin-top:8px}
 </style>
@@ -88,10 +93,9 @@ a{color:var(--gold)}
     <ol class="rules" id="short"></ol>
     <h3 style="margin-top:16px">Your path</h3>
     <div class="card path" id="path"></div>
-    <h3 style="margin-top:16px">What you could earn: a rough illustration</h3>
-    <div class="sub">Pick a loan type. Amounts are before tax, for ₹1 crore of loans disbursed.</div>
-    <div class="chips" id="chips"></div>
-    <div class="card" id="illus"></div>
+    <h3 style="margin-top:16px">Your earning potential</h3>
+    <div class="sub">Slide to set how much you could get disbursed each month in at least 2 loan types. We show what you would earn from your own business, before tax.</div>
+    <div class="card" id="calc"></div>
     <div class="row2"><button class="btn line" id="back1">Back</button><button class="btn gold" id="to3">Continue</button></div>
   </section>
 
@@ -131,7 +135,7 @@ a{color:var(--gold)}
 
 <script>
 var API_URL = "https://vmw-portal-api.vastmywealth.workers.dev/";
-var S = { info: null, goal: "", product: "", step: 1 };
+var S = { info: null, goal: "", calc: {}, step: 1 };
 
 function $(id) { return document.getElementById(id); }
 function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
@@ -214,44 +218,43 @@ function renderPath() {
     box.appendChild(d);
   });
 }
-function renderChips() {
-  var box = $("chips"); clear(box);
-  S.info.products.forEach(function (p) {
-    var b = el("button", "chip" + (S.product === p.code ? " on" : ""), p.name);
-    b.type = "button";
-    b.addEventListener("click", function () { S.product = p.code; renderChips(); renderIllus(); });
-    box.appendChild(b);
-  });
-}
-function renderIllus() {
-  var box = $("illus"); clear(box);
-  var p = S.info.products.filter(function (x) { return x.code === S.product; })[0];
-  if (!p) { box.appendChild(el("div", "sub", "No loan types are set up yet.")); return; }
-  box.appendChild(el("div", "sub", p.name + ": the lender pays us about " + p.commissionPct + "% of the loan amount"));
-  box.appendChild(el("div", "sub", "On ₹1 crore disbursed, the lender pays us " + inr(p.commissionOnCrore)));
-  var a = el("div", "", ""); a.style.marginTop = "10px";
-  a.appendChild(el("div", "sub", "Your own business of ₹1 crore: you keep"));
-  a.appendChild(el("div", "big", inr(p.selfSourced)));
-  a.appendChild(el("div", "sub", "(" + (100 - p.companySharePct) + "% of the commission, at any position)"));
-  box.appendChild(a);
-  box.appendChild(el("div", "sub", "")); 
-  var h = el("div", "sub", "Team business of ₹1 crore: team bonus for each position"); h.style.marginTop = "12px"; box.appendChild(h);
-  var t = el("table"), thead = el("thead"), hr = el("tr");
-  ["Position", "Needs a month", "Team bonus"].forEach(function (x, i) { hr.appendChild(el("th", i ? "n" : "", x)); });
-  thead.appendChild(hr); t.appendChild(thead);
-  var tb = el("tbody");
-  S.info.ranks.filter(function (r) { return r.order > 0; }).forEach(function (r) {
-    var tr = el("tr", r.key === S.goal ? "goalrow" : "");
-    tr.appendChild(el("td", "", r.title)); tr.appendChild(el("td", "n", amt(r.target))); tr.appendChild(el("td", "n", inr(p.team[r.key] || 0)));
-    tb.appendChild(tr);
-  });
-  t.appendChild(tb); box.appendChild(t);
-  var g = rank(S.goal);
-  if (g && g.order > 0) {
-    var sum = el("div", "pitch", "At your goal (" + g.title + "), ₹1 crore of your own business plus ₹1 crore of team business comes to about " + inr(p.selfSourced + (p.team[g.key] || 0)) + ".");
-    box.appendChild(sum);
+var CALC_MAX = 20000000, CALC_STEP = 500000;   // up to ₹2 crore a month per loan type, in steps of ₹5 lakh
+function renderCalc() {
+  var box = $("calc"); clear(box);
+  if (!S.info.products.length) { box.appendChild(el("div", "sub", "No loan types are set up yet.")); return; }
+  S.calc = S.calc || {};
+  var res = el("div", "result");
+  function update() {
+    var picked = 0, total = 0, biz = 0;
+    S.info.products.forEach(function (p) {
+      var v = Number(S.calc[p.code]) || 0;
+      if (v > 0) { picked++; biz += v; total += p.selfSourced * v / 10000000; }
+    });
+    clear(res);
+    if (picked < 2) {
+      res.appendChild(el("div", "sub", "Choose at least 2 loan types to see your earning potential. Selected so far: " + picked + "."));
+      return;
+    }
+    res.appendChild(el("div", "sub", "Your earning potential per month"));
+    res.appendChild(el("div", "big", inr(total)));
+    res.appendChild(el("div", "sub", "about " + inr(total * 12) + " a year, on " + amt(biz) + " disbursed each month"));
+    var pos = S.info.ranks[0];
+    S.info.ranks.forEach(function (r) { if (biz >= r.target) pos = r; });
+    if (pos.order > 0) res.appendChild(el("div", "pitch", "At this level of business you would reach the " + pos.title + " position, where you can build your own team."));
+    else if (S.info.ranks[1]) res.appendChild(el("div", "pitch", "The next position, " + S.info.ranks[1].title + ", starts at " + amt(S.info.ranks[1].target) + " of business in a month."));
   }
-  box.appendChild(el("div", "fine", "This is an illustration only, not a promise of income. Real payouts depend on the lender and the loan. Team bonus assumes the team's business came through partners below you, every position above you is filled, and each met its monthly target. Amounts are before TDS and GST."));
+  S.info.products.forEach(function (p) {
+    var row = el("div", "lt"), top = el("div", "top"), nm = el("span", "", p.name), val = el("b", "", "Not selected");
+    top.appendChild(nm); top.appendChild(val); row.appendChild(top);
+    var r = document.createElement("input"); r.type = "range"; r.min = 0; r.max = CALC_MAX; r.step = CALC_STEP; r.value = Number(S.calc[p.code]) || 0;
+    r.setAttribute("aria-label", p.name + " disbursed per month");
+    function show() { var v = Number(r.value) || 0; S.calc[p.code] = v; val.textContent = v > 0 ? amt(v) + " a month" : "Not selected"; update(); }
+    r.addEventListener("input", show);
+    row.appendChild(r); box.appendChild(row);
+    var v0 = Number(S.calc[p.code]) || 0; if (v0 > 0) val.textContent = amt(v0) + " a month";
+  });
+  box.appendChild(res); update();
+  box.appendChild(el("div", "fine", "This is an illustration only, not a promise of income. Real payouts depend on the lender and the loan. It counts your own business only, before TDS and GST, and assumes every loan is disbursed and paid by the lender."));
 }
 
 /* ---------- step 3: rules ---------- */
@@ -289,7 +292,7 @@ function register() {
 }
 
 /* ---------- wiring ---------- */
-$("to2").onclick = function () { renderShort(); renderPath(); renderChips(); renderIllus(); show(2); };
+$("to2").onclick = function () { renderShort(); renderPath(); renderCalc(); show(2); };
 $("back1").onclick = function () { show(1); };
 $("to3").onclick = function () { renderTerms(); show(3); };
 $("back2").onclick = function () { show(2); };
@@ -302,7 +305,7 @@ function start() {
   $("loading").classList.remove("hidden"); $("loadErr").classList.add("hidden");
   api("orgJoinInfo").then(function (r) {
     if (!r.success) throw new Error(r.error || "Could not load.");
-    S.info = r; S.product = r.products.length ? r.products[0].code : "";
+    S.info = r; S.calc = {};
     var z = $("fZone"); clear(z); z.appendChild(el("option", "", "Choose…")); z.firstChild.value = "";
     r.zones.forEach(function (n) { var o = el("option", "", n); o.value = n; z.appendChild(o); });
     var m = /[?&]ref=([^&]+)/.exec(location.search); if (m) $("fRef").value = decodeURIComponent(m[1]).toUpperCase().replace(/[^A-Z0-9\-]/g, "").slice(0, 24);
